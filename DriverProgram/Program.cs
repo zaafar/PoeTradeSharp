@@ -1,6 +1,6 @@
 ﻿namespace DriverProgram
 {
-	using System;
+    using System;
     using System.Threading;
     using PoeTradeSharp;
 
@@ -11,6 +11,7 @@
             WebsocketProtocol p = new WebsocketProtocol("Uniq Item", "https://www.pathofexile.com/trade/search/Standard/Abn2fL/live", "");
             p.LOG += P_LOG;
             p.ItemAdded += P_ItemAdded;
+            Console.WriteLine(RestClient.Leagues);
             Thread.Sleep(10000000);
             Console.WriteLine("Closing...");
         }
