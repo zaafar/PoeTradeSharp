@@ -53,6 +53,11 @@ namespace PoeTradeSharp
         public bool Identified;
 
         /// <summary>
+        /// Is Item Corrupted
+        /// </summary>
+        public bool IsCorrupted;
+
+        /// <summary>
         /// List of Item Explicit Mods
         /// </summary>
         public List<string> ExplicitMods;
@@ -95,6 +100,7 @@ namespace PoeTradeSharp
             this.IconUrl = string.Empty;
             this.Name = string.Empty;
             this.Identified = false;
+            this.IsCorrupted = false;
             this.ExplicitMods = new List<string>();
             this.ImplicitMods = new List<string>();
             this.ItemLevel = 0;
@@ -116,6 +122,7 @@ namespace PoeTradeSharp
                    $"Verified: {Verified}\n" +
                    $"IconUrl: {IconUrl}\n" +
                    $"Identified: {Identified}\n" +
+                   $"Corrupted: {IsCorrupted}\n" +
                    $"ImplicitMods: {string.Join("\n", ImplicitMods)}\n" +
                    $"ExplicitMods: {string.Join("\n", ExplicitMods)}\n" +
                    $"Stack Size: {StackSize}\n" +

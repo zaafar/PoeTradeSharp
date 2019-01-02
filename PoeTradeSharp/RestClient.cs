@@ -4,9 +4,11 @@
 
 namespace PoeTradeSharp
 {
+    using System.Collections.Generic;
     using System.Net;
     using System.Text;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Poe REST connection class to get the new item data
@@ -170,6 +172,54 @@ namespace PoeTradeSharp
             dynamic jsonResponse = JsonConvert.DeserializeObject(Encoding.UTF8.GetString(response));
             jsonResponse.error = errorCode;
             return jsonResponse;
+        }
+
+        /// <summary>
+        /// For doing a bulk search in pathofexile trading website.
+        /// </summary>
+        /// <param name="league">
+        ///   League to perform the bulk search in.
+        /// </param>
+        /// <param name="want">
+        ///   List of items you want to buy
+        /// </param>
+        /// <param name="have">
+        ///   List of items you want to sell
+        /// </param>
+        /// <param name="isOnlineRequired">
+        ///   Should the seller by online.
+        /// </param>
+        /// <param name="minimum">
+        ///   Minimum stock of that item. 0 means don't care, show all
+        /// </param>
+        /// <returns>
+        ///   Returns a list of items in json format with the seller/misc information.
+        /// </returns>
+        public static dynamic SearchForBulkItem(string league, List<string> want, List<string> have, bool isOnlineRequired = true, int minimum = 0)
+        {
+            string fullQuery = "{ \"exchange\" : { \"status\" : { \"option\" : \"online\" }, \"have\" : [ ], \"want\" : [ ] } }";
+            JObject query = JObject.Parse(fullQuery);
+            if (!isOnlineRequired)
+            {
+                query["exchange"]["status"]["option"] = "any";
+            }
+
+            if (minimum > 0)
+            {
+                query["exchange"]["minimum"] = minimum;
+            }
+
+            if (have.Count > 0)
+            {
+                query["exchange"]["have"] = new JArray(have);
+            }
+
+            if (want.Count > 0)
+            {
+                query["exchange"]["want"] = new JArray(want);
+            }
+
+            return SearchForItem(league, query.ToString(), true);
         }
 
         /// <summary>
