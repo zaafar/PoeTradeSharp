@@ -84,7 +84,7 @@ namespace PoeTradeSharp
         ///     You have to make a new call every 30 item.
         /// </param>
         /// <param name="isExchange">
-        ///     Getting Item for Bulk Item Exchange?
+        ///     Getting information from Bulk Item Exchange?
         /// </param>
         /// <returns>
         ///     RestCallData object containing response and error code
@@ -92,34 +92,14 @@ namespace PoeTradeSharp
         public static dynamic GetNewItems(string pattern, string dataIds, bool isExchange = false)
         {
             WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
-            byte[] response = Encoding.UTF8.GetBytes("{\"error\": 0}");
-            int errorCode = 0;
+            webClient.Headers[HttpRequestHeader.ContentType] = "application/json";
             webClient.QueryString.Set("query", pattern);
             if (isExchange)
             {
                 webClient.QueryString.Set("exchange", string.Empty);
             }
 
-            try
-            {
-                response = webClient.DownloadData($"{PoeHTTPSFetchURL}/{dataIds}");
-                WaitForRateLimit(webClient.ResponseHeaders);
-            }
-            catch (WebException e)
-            {
-                if (e.Status == WebExceptionStatus.ProtocolError)
-                {
-                    var res = e.Response as HttpWebResponse;
-                    if (res != null)
-                    {
-                        errorCode = (int)res.StatusCode;
-                    }
-                }
-            }
-
-            dynamic jsonResponse = JsonConvert.DeserializeObject(Encoding.UTF8.GetString(response));
-            jsonResponse.error = errorCode;
-            return jsonResponse;
+            return MakeRequest(webClient, $"{PoeHTTPSFetchURL}/{dataIds}", "GET");
         }
 
         /// <summary>
@@ -159,29 +139,8 @@ namespace PoeTradeSharp
         {
             WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
             webClient.Headers[HttpRequestHeader.ContentType] = "application/json";
-            byte[] response = Encoding.UTF8.GetBytes("{\"error\": 0}");
-            int errorCode = 0;
             string url = isBulk ? PoeSearchBulkItemURL : PoeSearchItemURL;
-            try
-            {
-                response = webClient.UploadData($"{url}/{league}", "POST", Encoding.ASCII.GetBytes(jsonQuery));
-                WaitForRateLimit(webClient.ResponseHeaders);
-            }
-            catch (WebException e)
-            {
-                if (e.Status == WebExceptionStatus.ProtocolError)
-                {
-                    var res = e.Response as HttpWebResponse;
-                    if (res != null)
-                    {
-                        errorCode = (int)res.StatusCode;
-                    }
-                }
-            }
-
-            dynamic jsonResponse = JsonConvert.DeserializeObject(Encoding.UTF8.GetString(response));
-            jsonResponse.error = errorCode;
-            return jsonResponse;
+            return MakeRequest(webClient, $"{url}/{league}", "POST", jsonQuery);
         }
 
         /// <summary>
@@ -282,6 +241,59 @@ namespace PoeTradeSharp
             {
                 System.Threading.Thread.Sleep(2000);
             }
+        }
+
+        /// <summary>
+        /// Private function to send the requests to pathofexile trading website
+        /// and lookout for the rate limit issues or any other errors.
+        /// </summary>
+        /// <param name="webClient">
+        ///     WebClient to use for sending the request
+        /// </param>
+        /// <param name="url">
+        ///     Requesting URL
+        /// </param>
+        /// <param name="method">
+        ///     HTTP method. currently supported methods are GET and POST
+        /// </param>
+        /// <param name="data">
+        ///     Body associated with the POST method. In GET method this argument is ignored.
+        /// </param>
+        /// <returns>
+        ///     Response send by the pathofexile server
+        /// </returns>
+        private static dynamic MakeRequest(WebClient webClient, string url, string method, string data = "")
+        {
+            byte[] response = Encoding.UTF8.GetBytes("{\"error\": 0}");
+            int errorCode = 0;
+            try
+            {
+                if (method == "GET")
+                {
+                    response = webClient.DownloadData(url);
+                }
+                else
+                {
+                    response = webClient.UploadData(url, method, Encoding.ASCII.GetBytes(data));
+                }
+
+                WaitForRateLimit(webClient.ResponseHeaders);
+            }
+            catch (WebException e)
+            {
+                if (e.Status == WebExceptionStatus.ProtocolError)
+                {
+                    HttpWebResponse res = e.Response as HttpWebResponse;
+                    if (res != null)
+                    {
+                        errorCode = (int)res.StatusCode;
+                    }
+                }
+            }
+
+            dynamic jsonResponse = JsonConvert.DeserializeObject(Encoding.UTF8.GetString(response));
+            jsonResponse.error = errorCode;
+            return jsonResponse;
         }
     }
 }
