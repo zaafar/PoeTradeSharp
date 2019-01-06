@@ -261,6 +261,10 @@ namespace PoeTradeSharp
                                 if (accountInfo.online != null)
                                 {
                                     definedItem.SellerAccountInfo += $" {accountInfo.online.league}";
+                                    if (accountInfo.online.status != null)
+                                    {
+                                        definedItem.SellerAccountInfo += $" {accountInfo.online.status}";
+                                    }
                                 }
                                 else
                                 {
@@ -273,6 +277,10 @@ namespace PoeTradeSharp
                             definedItem.IconUrl = item.item.icon;
                             definedItem.Name = $"{item.item.name} {item.item.typeLine}";
                             definedItem.Identified = item.item.identified;
+                            if (item.corrupted != null)
+                            {
+                                definedItem.IsCorrupted = true;
+                            }
 
                             if (item.item.stackSize != null)
                             {

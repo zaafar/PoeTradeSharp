@@ -83,18 +83,27 @@ namespace PoeTradeSharp
         ///     There is a maximum limit of 30 items. If there are more than 30 items
         ///     You have to make a new call every 30 item.
         /// </param>
+        /// <param name="isExchange">
+        ///     Getting Item for Bulk Item Exchange?
+        /// </param>
         /// <returns>
         ///     RestCallData object containing response and error code
         /// </returns>
-        public static dynamic GetNewItems(string pattern, string dataIds)
+        public static dynamic GetNewItems(string pattern, string dataIds, bool isExchange = false)
         {
             WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
             byte[] response = Encoding.UTF8.GetBytes("{\"error\": 0}");
             int errorCode = 0;
             webClient.QueryString.Set("query", pattern);
+            if (isExchange)
+            {
+                webClient.QueryString.Set("exchange", string.Empty);
+            }
+
             try
             {
                 response = webClient.DownloadData($"{PoeHTTPSFetchURL}/{dataIds}");
+                WaitForRateLimit(webClient.ResponseHeaders);
             }
             catch (WebException e)
             {
@@ -156,6 +165,7 @@ namespace PoeTradeSharp
             try
             {
                 response = webClient.UploadData($"{url}/{league}", "POST", Encoding.ASCII.GetBytes(jsonQuery));
+                WaitForRateLimit(webClient.ResponseHeaders);
             }
             catch (WebException e)
             {
@@ -255,6 +265,23 @@ namespace PoeTradeSharp
             dynamic jsonResponse = JsonConvert.DeserializeObject(Encoding.UTF8.GetString(response));
             jsonResponse.error = errorCode;
             return jsonResponse;
+        }
+
+        /// <summary>
+        /// This private function reads the PathOfExile response header and Sleep in case
+        /// the request is reaching the rate-limit.
+        /// </summary>
+        /// <param name="responseHeader">
+        ///     Web Request Response Header to extract Rate Limit information
+        /// </param>
+        private static void WaitForRateLimit(WebHeaderCollection responseHeader)
+        {
+            string[] rateLimitInfo = responseHeader["x-rate-limit-ip"].Split(':');
+            string[] rateLimitState = responseHeader["x-rate-limit-ip-state"].Split(':');
+            if (int.Parse(rateLimitInfo[0]) - int.Parse(rateLimitState[0]) < 1)
+            {
+                System.Threading.Thread.Sleep(2000);
+            }
         }
     }
 }
