@@ -27,8 +27,8 @@ namespace PoeTradeSharp
         public static double GetAvergeExchangeRate(dynamic currencySellerList)
         {
             List<double> currencyRatio = new List<double>(256);
-            int wantAmount = 0;
-            int haveAmount = 0;
+            double wantAmount = 0;
+            double haveAmount = 0;
             foreach (var currencySeller in currencySellerList["result"])
             {
                 // Ignoring Offline Or AFK accounts
@@ -40,7 +40,7 @@ namespace PoeTradeSharp
 
                 wantAmount = currencySeller.listing.price.exchange.amount;
                 haveAmount = currencySeller.listing.price.item.amount;
-                currencyRatio.Add(haveAmount / (double)wantAmount);
+                currencyRatio.Add(haveAmount / wantAmount);
             }
 
             if (currencyRatio.Count > 0)

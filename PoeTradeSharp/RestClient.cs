@@ -83,18 +83,18 @@ namespace PoeTradeSharp
         ///     There is a maximum limit of 30 items. If there are more than 30 items
         ///     You have to make a new call every 30 item.
         /// </param>
-        /// <param name="isExchange">
+        /// <param name="isBulk">
         ///     Getting information from Bulk Item Exchange?
         /// </param>
         /// <returns>
         ///     RestCallData object containing response and error code
         /// </returns>
-        public static dynamic GetNewItems(string pattern, string dataIds, bool isExchange = false)
+        public static dynamic GetNewItems(string pattern, string dataIds, bool isBulk = false)
         {
             WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
             webClient.Headers[HttpRequestHeader.ContentType] = "application/json";
             webClient.QueryString.Set("query", pattern);
-            if (isExchange)
+            if (isBulk)
             {
                 webClient.QueryString.Set("exchange", string.Empty);
             }
@@ -115,32 +115,6 @@ namespace PoeTradeSharp
         {
             WebClient webClient = new WebClient();
             return webClient.DownloadData(url);
-        }
-
-        /// <summary>
-        /// This function search for an item in the pathofexile database
-        /// and returns the item pattern and hash of the matches.
-        /// </summary>
-        /// <param name="league">
-        ///   League in which that item belongs to
-        /// </param>
-        /// <param name="jsonQuery">
-        ///   Query string in json format to search for the item
-        /// </param>
-        /// <param name="isBulk">
-        ///   Is this a bulk search or normal search.
-        ///   Bulk = https://www.pathofexile.com/trade/exchange/
-        ///   Normal = https://www.pathofexile.com/trade/search/
-        /// </param>
-        /// <returns>
-        ///   A JSON object containing item search result hashes and item pattern
-        /// </returns>
-        public static dynamic SearchForItem(string league, string jsonQuery, bool isBulk = false)
-        {
-            WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
-            webClient.Headers[HttpRequestHeader.ContentType] = "application/json";
-            string url = isBulk ? PoeSearchBulkItemURL : PoeSearchItemURL;
-            return MakeRequest(webClient, $"{url}/{league}", "POST", jsonQuery);
         }
 
         /// <summary>
@@ -188,59 +162,59 @@ namespace PoeTradeSharp
                 query["exchange"]["want"] = new JArray(want);
             }
 
-            return SearchForItem(league, query.ToString(), true);
-        }
+            var sellerData = SearchForItem(league, query.ToString(), true);
+            string itemPattern = sellerData.id;
+            int totalSellers = sellerData.total;
+            List<string> sellerHashes = sellerData.result.ToObject<List<string>>();
+            dynamic allItems = new JObject();
+            string csvIds = string.Empty;
 
-        /// <summary>
-        /// A private function to dry out the fetching of pathofexile trade metadata
-        /// </summary>
-        /// <param name="url">
-        ///   metadata url to fetch
-        /// </param>
-        /// <returns>
-        ///   A JSON object containing pathofexile trade meta data results.
-        /// </returns>
-        private static dynamic GetMetaData(string url)
-        {
-            WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
-            byte[] response = Encoding.UTF8.GetBytes("{\"error\": 0}");
-            int errorCode = 0;
-            try
+            for (int i = 0; i < totalSellers; i++)
             {
-                response = webClient.DownloadData(url);
-            }
-            catch (WebException e)
-            {
-                if (e.Status == WebExceptionStatus.ProtocolError)
+                csvIds += sellerHashes[i];
+                if ((i + 1) % 20 == 0)
                 {
-                    var res = e.Response as HttpWebResponse;
-                    if (res != null)
-                    {
-                        errorCode = (int)res.StatusCode;
-                    }
+                    allItems.Merge(RestClient.GetNewItems(itemPattern, csvIds, true));
+                    csvIds = string.Empty;
+                }
+                else if ((i + 1) < totalSellers)
+                {
+                    csvIds += ",";
+                }
+                else
+                {
+                    allItems.Merge(RestClient.GetNewItems(itemPattern, csvIds, true));
+                    csvIds = string.Empty;
                 }
             }
 
-            dynamic jsonResponse = JsonConvert.DeserializeObject(Encoding.UTF8.GetString(response));
-            jsonResponse.error = errorCode;
-            return jsonResponse;
+            return allItems;
         }
 
         /// <summary>
-        /// This private function reads the PathOfExile response header and Sleep in case
-        /// the request is reaching the rate-limit.
+        /// This function search for an item in the pathofexile database
+        /// and returns the item pattern and hash of the matches.
         /// </summary>
-        /// <param name="responseHeader">
-        ///     Web Request Response Header to extract Rate Limit information
+        /// <param name="league">
+        ///   League in which that item belongs to
         /// </param>
-        private static void WaitForRateLimit(WebHeaderCollection responseHeader)
+        /// <param name="jsonQuery">
+        ///   Query string in json format to search for the item
+        /// </param>
+        /// <param name="isBulk">
+        ///   Is this a bulk search or normal search.
+        ///   Bulk = https://www.pathofexile.com/trade/exchange/
+        ///   Normal = https://www.pathofexile.com/trade/search/
+        /// </param>
+        /// <returns>
+        ///   A JSON object containing item search result hashes and item pattern
+        /// </returns>
+        private static dynamic SearchForItem(string league, string jsonQuery, bool isBulk = false)
         {
-            string[] rateLimitInfo = responseHeader["x-rate-limit-ip"].Split(':');
-            string[] rateLimitState = responseHeader["x-rate-limit-ip-state"].Split(':');
-            if (int.Parse(rateLimitInfo[0]) - int.Parse(rateLimitState[0]) < 1)
-            {
-                System.Threading.Thread.Sleep(2000);
-            }
+            WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
+            webClient.Headers[HttpRequestHeader.ContentType] = "application/json";
+            string url = isBulk ? PoeSearchBulkItemURL : PoeSearchItemURL;
+            return MakeRequest(webClient, $"{url}/{league}", "POST", jsonQuery);
         }
 
         /// <summary>
@@ -294,6 +268,58 @@ namespace PoeTradeSharp
             dynamic jsonResponse = JsonConvert.DeserializeObject(Encoding.UTF8.GetString(response));
             jsonResponse.error = errorCode;
             return jsonResponse;
+        }
+
+        /// <summary>
+        /// A private function to dry out the fetching of pathofexile trade metadata
+        /// </summary>
+        /// <param name="url">
+        ///   metadata url to fetch
+        /// </param>
+        /// <returns>
+        ///   A JSON object containing pathofexile trade meta data results.
+        /// </returns>
+        private static dynamic GetMetaData(string url)
+        {
+            WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
+            byte[] response = Encoding.UTF8.GetBytes("{\"error\": 0}");
+            int errorCode = 0;
+            try
+            {
+                response = webClient.DownloadData(url);
+            }
+            catch (WebException e)
+            {
+                if (e.Status == WebExceptionStatus.ProtocolError)
+                {
+                    var res = e.Response as HttpWebResponse;
+                    if (res != null)
+                    {
+                        errorCode = (int)res.StatusCode;
+                    }
+                }
+            }
+
+            dynamic jsonResponse = JsonConvert.DeserializeObject(Encoding.UTF8.GetString(response));
+            jsonResponse.error = errorCode;
+            return jsonResponse;
+        }
+
+        /// <summary>
+        /// This private function reads the PathOfExile response header and Sleep in case
+        /// the request is reaching the rate-limit.
+        /// </summary>
+        /// <param name="responseHeader">
+        ///     Web Request Response Header to extract Rate Limit information
+        /// </param>
+        private static void WaitForRateLimit(WebHeaderCollection responseHeader)
+        {
+            string[] rateLimitInfo = responseHeader["x-rate-limit-ip"].Split(':');
+            string[] rateLimitState = responseHeader["x-rate-limit-ip-state"].Split(':');
+            if (int.Parse(rateLimitInfo[0]) - int.Parse(rateLimitState[0]) < 2)
+            {
+                System.Threading.Thread.Sleep(2000);
+            }
         }
     }
 }
