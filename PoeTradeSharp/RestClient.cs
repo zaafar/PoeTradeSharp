@@ -132,13 +132,17 @@ namespace PoeTradeSharp
         /// <param name="isOnlineRequired">
         ///   Should the seller by online.
         /// </param>
-        /// <param name="minimum">
+        /// <param name="minimumStack">
         ///   Minimum stock of that item. 0 means don't care, show all
         /// </param>
         /// <returns>
-        ///   Returns a list of items in json format with the seller/misc information.
+        ///   Returns a JObject with following keys
+        ///     "result" List (JArray) of Items (JObjects) containing the seller/item information.
+        ///     "total" -> total number of elements in the "result" list
+        ///     "error" -> error number in case of any error otherwise returns 0.
+        ///     "pattern" -> Item pattern returned by the server
         /// </returns>
-        public static dynamic SearchForBulkItem(string league, List<string> want, List<string> have, bool isOnlineRequired = true, int minimum = 0)
+        public static dynamic SearchForBulkItem(string league, List<string> want, List<string> have, bool isOnlineRequired = true, int minimumStack = 0)
         {
             string fullQuery = "{ \"exchange\" : { \"status\" : { \"option\" : \"online\" }, \"have\" : [ ], \"want\" : [ ] } }";
             JObject query = JObject.Parse(fullQuery);
@@ -147,9 +151,9 @@ namespace PoeTradeSharp
                 query["exchange"]["status"]["option"] = "any";
             }
 
-            if (minimum > 0)
+            if (minimumStack > 0)
             {
-                query["exchange"]["minimum"] = minimum;
+                query["exchange"]["minimum"] = minimumStack;
             }
 
             if (have.Count > 0)
@@ -163,7 +167,7 @@ namespace PoeTradeSharp
             }
 
             var sellerData = SearchForItem(league, query.ToString(), true);
-            string itemPattern = sellerData.id;
+            string pattern = sellerData.id;
             int totalSellers = sellerData.total;
             List<string> sellerHashes = sellerData.result.ToObject<List<string>>();
             dynamic allItems = new JObject();
@@ -172,9 +176,11 @@ namespace PoeTradeSharp
             for (int i = 0; i < totalSellers; i++)
             {
                 csvIds += sellerHashes[i];
+
+                // Server doesn't accept more than 20 Ids in a single request
                 if ((i + 1) % 20 == 0)
                 {
-                    allItems.Merge(RestClient.GetNewItems(itemPattern, csvIds, true));
+                    allItems.Merge(RestClient.GetNewItems(pattern, csvIds, true));
                     csvIds = string.Empty;
                 }
                 else if ((i + 1) < totalSellers)
@@ -183,11 +189,14 @@ namespace PoeTradeSharp
                 }
                 else
                 {
-                    allItems.Merge(RestClient.GetNewItems(itemPattern, csvIds, true));
+                    allItems.Merge(RestClient.GetNewItems(pattern, csvIds, true));
                     csvIds = string.Empty;
                 }
             }
 
+            // Adding additional information to the JObject structure.
+            allItems.total = totalSellers;
+            allItems.pattern = pattern;
             return allItems;
         }
 
