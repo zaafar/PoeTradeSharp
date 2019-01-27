@@ -18,22 +18,22 @@ namespace PoeTradeSharp
         /// <summary>
         /// Currently active pathofexile Leagues
         /// </summary>
-        public static readonly dynamic Leagues;
+        public static readonly JObject Leagues;
 
         /// <summary>
         /// Currently available pathofexile Items
         /// </summary>
-        public static readonly dynamic Items;
+        public static readonly JObject Items;
 
         /// <summary>
         /// Currently available pathofexile Bulk Item list
         /// </summary>
-        public static readonly dynamic Static;
+        public static readonly JObject Static;
 
         /// <summary>
         /// Currently available pathofexile Mods
         /// </summary>
-        public static readonly dynamic Stats;
+        public static readonly JObject Stats;
 
         /// <summary>
         /// Poe REST protocol address for fetching item details
@@ -89,7 +89,7 @@ namespace PoeTradeSharp
         /// <returns>
         ///     RestCallData object containing response and error code
         /// </returns>
-        public static dynamic GetNewItems(string pattern, string dataIds, bool isBulk = false)
+        public static JObject GetNewItems(string pattern, string dataIds, bool isBulk = false)
         {
             WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
             webClient.Headers[HttpRequestHeader.ContentType] = "application/json";
@@ -142,7 +142,7 @@ namespace PoeTradeSharp
         ///     "error" -> error number in case of any error otherwise returns 0.
         ///     "pattern" -> Item pattern returned by the server
         /// </returns>
-        public static dynamic SearchForBulkItem(string league, List<string> want, List<string> have, bool isOnlineRequired = true, int minimumStack = 0)
+        public static JObject SearchForBulkItem(string league, List<string> want, List<string> have, bool isOnlineRequired = true, int minimumStack = 0)
         {
             string fullQuery = "{ \"exchange\" : { \"status\" : { \"option\" : \"online\" }, \"have\" : [ ], \"want\" : [ ] } }";
             JObject query = JObject.Parse(fullQuery);
@@ -166,11 +166,11 @@ namespace PoeTradeSharp
                 query["exchange"]["want"] = new JArray(want);
             }
 
-            var sellerData = SearchForItem(league, query.ToString(), true);
-            string pattern = sellerData.id;
-            int totalSellers = sellerData.total;
-            List<string> sellerHashes = sellerData.result.ToObject<List<string>>();
-            dynamic allItems = new JObject();
+            JObject sellerData = SearchForItem(league, query.ToString(), true);
+            string pattern = sellerData["id"].ToObject<string>();
+            int totalSellers = sellerData["total"].ToObject<int>();
+            List<string> sellerHashes = sellerData["result"].ToObject<List<string>>();
+            JObject allItems = new JObject();
             string csvIds = string.Empty;
 
             for (int i = 0; i < totalSellers; i++)
@@ -195,8 +195,8 @@ namespace PoeTradeSharp
             }
 
             // Adding additional information to the JObject structure.
-            allItems.total = totalSellers;
-            allItems.pattern = pattern;
+            allItems["total"] = totalSellers;
+            allItems["pattern"] = pattern;
             return allItems;
         }
 
@@ -218,7 +218,7 @@ namespace PoeTradeSharp
         /// <returns>
         ///   A JSON object containing item search result hashes and item pattern
         /// </returns>
-        private static dynamic SearchForItem(string league, string jsonQuery, bool isBulk = false)
+        private static JObject SearchForItem(string league, string jsonQuery, bool isBulk = false)
         {
             WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
             webClient.Headers[HttpRequestHeader.ContentType] = "application/json";
@@ -245,7 +245,7 @@ namespace PoeTradeSharp
         /// <returns>
         ///     Response send by the pathofexile server
         /// </returns>
-        private static dynamic MakeRequest(WebClient webClient, string url, string method, string data = "")
+        private static JObject MakeRequest(WebClient webClient, string url, string method, string data = "")
         {
             byte[] response = Encoding.UTF8.GetBytes("{\"error\": 0}");
             int errorCode = 0;
@@ -266,16 +266,16 @@ namespace PoeTradeSharp
             {
                 if (e.Status == WebExceptionStatus.ProtocolError)
                 {
-                    HttpWebResponse res = e.Response as HttpWebResponse;
-                    if (res != null)
+                    if (e.Response is HttpWebResponse res)
                     {
                         errorCode = (int)res.StatusCode;
+                        WaitForRateLimit(res.Headers);
                     }
                 }
             }
 
-            dynamic jsonResponse = JsonConvert.DeserializeObject(Encoding.UTF8.GetString(response));
-            jsonResponse.error = errorCode;
+            JObject jsonResponse = JsonConvert.DeserializeObject<JObject>(Encoding.UTF8.GetString(response));
+            jsonResponse["error"] = errorCode;
             return jsonResponse;
         }
 
@@ -288,7 +288,7 @@ namespace PoeTradeSharp
         /// <returns>
         ///   A JSON object containing pathofexile trade meta data results.
         /// </returns>
-        private static dynamic GetMetaData(string url)
+        private static JObject GetMetaData(string url)
         {
             WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
             byte[] response = Encoding.UTF8.GetBytes("{\"error\": 0}");
@@ -309,8 +309,8 @@ namespace PoeTradeSharp
                 }
             }
 
-            dynamic jsonResponse = JsonConvert.DeserializeObject(Encoding.UTF8.GetString(response));
-            jsonResponse.error = errorCode;
+            JObject jsonResponse = JsonConvert.DeserializeObject<JObject>(Encoding.UTF8.GetString(response));
+            jsonResponse["error"] = errorCode;
             return jsonResponse;
         }
 

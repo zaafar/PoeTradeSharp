@@ -28,7 +28,7 @@ namespace PoeTradeSharp
         /// league we are searching item in e.g. Standard in https://www.pathofexile.com/trade/search/Standard/Ab3LSL
         /// </summary>
         public readonly string League;
-        
+
         /// <summary>
         /// Poe Trade websocket protocol address
         /// </summary>
@@ -38,11 +38,6 @@ namespace PoeTradeSharp
         /// WebSocket class to connect to poe.trade websocket server
         /// </summary>
         private readonly WebSocket webSocket;
-
-        /// <summary>
-        /// is websocket connected or not.
-        /// </summary>
-        private bool isConnected;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WebsocketProtocol" /> class.
@@ -110,7 +105,12 @@ namespace PoeTradeSharp
         /// <summary>
         /// Gets a value indicating whether websocket is connected or not.
         /// </summary>
-        public bool IsConnected { get => this.isConnected; }
+        public bool IsConnected { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the Maximum number of items a client can ask in a single request
+        /// </summary>
+        public int MaxItemLimit { get; set; } = 10;
 
         /// <summary>
         /// Async Connect to the Websocket server.
@@ -125,7 +125,7 @@ namespace PoeTradeSharp
         /// </summary>
         public void Close()
         {
-            if (this.isConnected)
+            if (this.IsConnected)
             {
                 this.webSocket.Close();
             }
@@ -136,9 +136,9 @@ namespace PoeTradeSharp
         /// </summary>
         /// <param name="sender">The parameter is not used.</param>
         /// <param name="e">The parameter is not used.</param>
-        private void OnOpen(object sender, System.EventArgs e)
+        private void OnOpen(object sender, EventArgs e)
         {
-            this.isConnected = true;
+            this.IsConnected = true;
             this.LOG?.Invoke(this, $"[INFO] Successfully Connected to {PoeTradeWebsocketServer}{League}/{ItemPattern} url");
         }
 
@@ -149,7 +149,7 @@ namespace PoeTradeSharp
         /// <param name="e">The parameter is not used.</param>
         private void OnError(object sender, ErrorEventArgs e)
         {
-            this.isConnected = false;
+            this.IsConnected = false;
             this.LOG?.Invoke(this, $"[ERROR] Connecting to {PoeTradeWebsocketServer}{League}/{ItemPattern} url due to  {e.Exception} {e.Message}");
         }
 
@@ -160,7 +160,7 @@ namespace PoeTradeSharp
         /// <param name="e">The parameter is not used.</param>
         private void OnClose(object sender, CloseEventArgs e)
         {
-            this.isConnected = false;
+            this.IsConnected = false;
             string niceMessage = $"[INFO] Connection Closed. URL: " +
                 $"{PoeTradeWebsocketServer}{League}/{ItemPattern}, ERROR CODE: {e.Code}";
             switch (e.Code)
@@ -210,7 +210,7 @@ namespace PoeTradeSharp
             {
                 csvIds += ids.Pop();
                 counter++;
-                if (counter >= 30)
+                if (counter >= this.MaxItemLimit)
                 {
                     this.ParseResponse(RestClient.GetNewItems(this.ItemPattern, csvIds));
                     counter = 0;
@@ -304,6 +304,11 @@ namespace PoeTradeSharp
                     break;
                 case 429:
                     this.LOG?.Invoke(this, $"[ERROR] Too Many Requests to Poe Website. CODE: {errorCode}");
+                    break;
+                case 400:
+                    var errorMsg = "[ERROR] Invalid Request. Maybe sending too many Ids ";
+                        errorMsg += $"(i.e. {MaxItemLimit}) in a single request. CODE: {errorCode}";
+                    this.LOG?.Invoke(this, errorMsg);
                     break;
                 default:
                     this.LOG?.Invoke(this, $"[ERROR] requesting poe for item info. CODE: {errorCode}");
