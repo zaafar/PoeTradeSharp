@@ -67,6 +67,11 @@ namespace PoeTradeSharp
         }
 
         /// <summary>
+        /// Gets or sets the Maximum number of items a client can ask in a single request
+        /// </summary>
+        public static int MaxItemLimit { get; set; } = 20;
+
+        /// <summary>
         ///     gets the new item data synchronously.
         ///     Depends on the dataId (which we get from websocket protocal)
         ///     and pattern to figure out which new item are we requesting for.
@@ -178,7 +183,7 @@ namespace PoeTradeSharp
                 csvIds += sellerHashes[i];
 
                 // Server doesn't accept more than 20 Ids in a single request
-                if ((i + 1) % 20 == 0)
+                if ((i + 1) % MaxItemLimit == 0)
                 {
                     allItems.Merge(RestClient.GetNewItems(pattern, csvIds, true));
                     csvIds = string.Empty;
