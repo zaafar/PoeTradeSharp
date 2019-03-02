@@ -95,7 +95,7 @@ namespace PoeTradeSharp
         /// ## seperates the text to display and data to send to the pathofexile server
         /// In case of empty id, don't send anything to the server
         /// </summary>
-        private static List<string> saleTypeOptions = new List<string>()
+        private static List<string> priceTypeOptions = new List<string>()
         {
             "Any##", "Buyout or Fixed Price##priced", "No Listed Price##unpriced"
         };
@@ -105,7 +105,7 @@ namespace PoeTradeSharp
         /// ## seperates the text to display and data to send to the pathofexile server
         /// In case of empty id, don't send anything to the server
         /// </summary>
-        private static List<string> statusOptions = new List<string>()
+        private static List<string> userStatusOptions = new List<string>()
         {
             "Any##", "Online Only##online"
         };
@@ -115,7 +115,7 @@ namespace PoeTradeSharp
         /// ## seperates the text to display and data to send to the pathofexile server
         /// In case of empty id, don't send anything to the server
         /// </summary>
-        private static List<string> priceTypeOptions = new List<string>();
+        private static List<string> buyoutCurrencyTypeOptions = new List<string>();
 
         /// <summary>
         /// Initializes static members of the <see cref="FormData" /> class.
@@ -131,11 +131,11 @@ namespace PoeTradeSharp
                     continue;
                 }
 
-                priceTypeOptions.Add($"{tmpData["text"]}##{tmpData["id"]}");
+                buyoutCurrencyTypeOptions.Add($"{tmpData["text"]}##{tmpData["id"]}");
             }
 
-            PriceTypeOptions.Sort();
-            PriceTypeOptions.Insert(0, "Chaos Orb Equivalent##");
+            buyoutCurrencyTypeOptions.Sort();
+            buyoutCurrencyTypeOptions.Insert(0, "Chaos Orb Equivalent##");
         }
 
         /// <summary>
@@ -164,19 +164,19 @@ namespace PoeTradeSharp
         public static List<string> ItemAgeOptions { get => itemAgeOptions; }
 
         /// <summary>
-        /// Gets the sale type options
+        /// Gets the sale price type options
         /// </summary>
-        public static List<string> SaleTypeOptions { get => saleTypeOptions; }
+        public static List<string> PriceTypeOptions { get => priceTypeOptions; }
 
         /// <summary>
         /// Gets the user status options
         /// </summary>
-        public static List<string> StatusOptions { get => statusOptions; }
+        public static List<string> UserStatusOptions { get => userStatusOptions; }
 
         /// <summary>
         /// Gets the basic currency type options for buyout prices
         /// </summary>
-        public static List<string> PriceTypeOptions { get => priceTypeOptions; }
+        public static List<string> BuyoutCurrencyTypeOptions { get => buyoutCurrencyTypeOptions; }
 
         /// <summary>
         /// Converts the form data to pathofexile trading website specific data
