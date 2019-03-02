@@ -9,7 +9,15 @@ namespace PoeTradeSharp
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Convert Lib specific Json data to pathofexile trading website specific Json data
+    /// Convert Lib specific Json data to pathofexile trading website specific Json data.
+    /// Hard coded list found in this class are there because pathofexile.com does not
+    /// provide a public API to get these values. These lists are manually extracted from
+    /// following JavaScript files returned by the server
+    /// -> go to pathofexile.com/trade
+    /// -> open inspect
+    /// -> go to Debugger
+    /// -> go to following file
+    ///       web.poecdn.com -> js -> trade.xxxx.js
     /// </summary>
     public static class FormData
     {
