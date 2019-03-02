@@ -65,7 +65,7 @@ namespace PoeTradeSharp
         private static List<string> mapSeriesOptions = new List<string>()
         {
             "Any##", "Betrayal##betrayal", "War for the Atlas##warfortheatlas",
-            "Atlas of Worlds##atlasofworlds", "Legacy##original"
+            "Atlas of Worlds##atlasofworlds", "The Awakening##theawakening", "Legacy##original"
         };
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace PoeTradeSharp
         /// ## seperates the text to display and data to send to the pathofexile server
         /// In case of empty id, don't send anything to the server
         /// </summary>
-        private static List<string> listedOptions = new List<string>()
+        private static List<string> itemAgeOptions = new List<string>()
         {
             "Any Time##", "Up to a Day Ago##1day", "Up to 3 Days Ago##3days",
             "Up to a Week Ago##1week", "Up to 2 Weeks Ago##2weeks",
@@ -161,7 +161,7 @@ namespace PoeTradeSharp
         /// <summary>
         /// Gets the item age options
         /// </summary>
-        public static List<string> ListedOptions { get => listedOptions; }
+        public static List<string> ItemAgeOptions { get => itemAgeOptions; }
 
         /// <summary>
         /// Gets the sale type options
