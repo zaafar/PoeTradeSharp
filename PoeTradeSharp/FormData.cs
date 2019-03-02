@@ -22,6 +22,14 @@ namespace PoeTradeSharp
     public static class FormData
     {
         /// <summary>
+        /// This class seperate what to show on the UI (text) and
+        /// what to send to the pathofexile server (id) via ## symbol.
+        /// This is mainly because ImGui (main user of this class for now)
+        /// auto hide everything after ## symbol.
+        /// </summary>
+        private static readonly string[] SeperatorTextId = new string[] { "##" };
+
+        /// <summary>
         /// List of options available in pathofexile trading website item category.
         /// ## seperates the text to display and id to send to the pathofexile server
         /// In case of empty id, don't send anything to the server
@@ -107,7 +115,7 @@ namespace PoeTradeSharp
         /// </summary>
         private static List<string> userStatusOptions = new List<string>()
         {
-            "Any##", "Online Only##online"
+            "Any##any", "Online Only##online"
         };
 
         /// <summary>
@@ -221,6 +229,10 @@ namespace PoeTradeSharp
                         StatusParser(ref toReturn.query, obj["value"].ToString());
                         break;
                     case "Category":
+                        CategoryParser(ref toReturn.query, obj["value"].ToString());
+                        break;
+                    case "Rarity":
+                        RarityParser(ref toReturn.query, obj["value"].ToString());
                         break;
                     default:
                         System.Console.WriteLine(toReturn);
@@ -251,8 +263,7 @@ namespace PoeTradeSharp
                 return;
             }
 
-            string[] sep = new string[1] { "##" };
-            value = value.Split(sep, 2, StringSplitOptions.None)[1];
+            value = value.Split(SeperatorTextId, 2, StringSplitOptions.None)[1];
 
             string[] details = value.Split(':');
             if (details.Length != 2)
@@ -289,22 +300,21 @@ namespace PoeTradeSharp
         /// </param>
         private static void StatusParser(ref dynamic data, string value)
         {
-            data.status = new JObject();
-            switch (value)
+            if (!userStatusOptions.Contains(value))
             {
-                case "Any":
-                    data.status.option = "any";
-                    break;
-                case "Online Only":
-                    data.status.option = "online";
-                    break;
-                default:
-                    throw new Exception($"Invalid Status Option: {value}");
+                throw new Exception($"Invalid Status Option: {value}");
+            }
+
+            data.status = new JObject();
+            string id = value.Split(SeperatorTextId, StringSplitOptions.None)[1];
+            if (!string.IsNullOrEmpty(id))
+            {
+                data.status.option = id;
             }
         }
 
         /// <summary>
-        /// Helper function to parse the data associated with the UI key "Category"
+        /// Helper function to parse the data associated with the UI key "Item Category"
         /// </summary>
         /// <param name="data">
         /// JObject to save the result in, should be passed by reference
@@ -314,6 +324,43 @@ namespace PoeTradeSharp
         /// </param>
         private static void CategoryParser(ref dynamic data, string value)
         {
+            if (!itemCategoriesOptions.Contains(value))
+            {
+                throw new Exception($"Invalid Category Option: {value}");
+            }
+
+            string id = value.Split(SeperatorTextId, StringSplitOptions.None)[1];
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                CreateParentJObjectIfNotExists(ref data, new string[] { "filters", "type_filters", "filters", "category" });
+                data.filters.type_filters.disabled = false;
+                data.filters.type_filters.filters.category.option = id;
+            }
+        }
+
+        /// <summary>
+        /// Helper function to parse the data associated with the UI key "Item Rarity"
+        /// </summary>
+        /// <param name="data">
+        /// JObject to save the result in, should be passed by reference
+        /// </param>
+        /// <param name="value">
+        /// An element of ItemRarityOptions list.
+        /// </param>
+        private static void RarityParser(ref dynamic data, string value)
+        {
+            if (!itemRarityOptions.Contains(value))
+            {
+                throw new Exception($"Invalid Rarity Option: {value}");
+            }
+
+            string id = value.Split(SeperatorTextId, StringSplitOptions.None)[1];
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                CreateParentJObjectIfNotExists(ref data, new string[] { "filters", "type_filters", "filters", "rarity" });
+                data.filters.type_filters.disabled = false;
+                data.filters.type_filters.filters.rarity.option = id;
+            }
         }
 
         /// <summary>
@@ -335,8 +382,9 @@ namespace PoeTradeSharp
                 if (!p.ContainsKey(parent))
                 {
                     p[parent] = new JObject();
-                    p = p[parent];
                 }
+
+                p = p[parent];
             }
         }
     }
