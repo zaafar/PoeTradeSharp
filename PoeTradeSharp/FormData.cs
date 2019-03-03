@@ -10,17 +10,118 @@ namespace PoeTradeSharp
 
     /// <summary>
     /// Convert Lib specific Json data to pathofexile trading website specific Json data.
-    /// Hard coded list found in this class are there because pathofexile.com does not
-    /// provide a public API to get these values. These lists are manually extracted from
-    /// following JavaScript files returned by the server
-    /// -> go to pathofexile.com/trade
-    /// -> open inspect
-    /// -> go to Debugger
-    /// -> go to following file
-    ///       web.poecdn.com -> js -> trade.xxxx.js
     /// </summary>
     public static class FormData
     {
+        /// <summary>
+        /// List of options available in pathofexile trading website for specific categories
+        /// ## seperates the text to display and id to send to the pathofexile server
+        /// In case of empty id, don't send anything to the server.
+        /// It is hard coded because pathofexile.com does not provide a public API
+        /// to get these values. These lists are manually extracted from
+        /// following JavaScript files returned by the server
+        /// -> go to pathofexile.com/trade
+        /// -> open inspect
+        /// -> go to Debugger
+        /// -> go to following file
+        ///       web.poecdn.com -> js -> trade.xxxx.js
+        /// </summary>
+        private static readonly Dictionary<string, List<string>> Options = new Dictionary<string, List<string>>()
+        {
+            { "ItemCategories", new List<string>()
+                {
+                    "Any##", "Any Weapon##weapon", "One-Handed Weapon##weapon.one",
+                    "One-Handed Melee Weapon##weapon.onemelee",
+                    "Two-Handed Melee Weapon##weapon.twomelee", "Bow##weapon.bow",
+                    "Claw##weapon.claw", "Dagger##weapon.dagger", "One-Handed Axe##weapon.oneaxe",
+                    "One-Handed Mace##weapon.onemace", "One-Handed Sword##weapon.onesword",
+                    "Sceptre##weapon.sceptre", "Staff##weapon.staff",
+                    "Two-Handed Axe##weapon.twoaxe", "Two-Handed Mace##weapon.twomace",
+                    "Two-Handed Sword##weapon.twosword", "Wand##weapon.wand",
+                    "Fishing Rod##weapon.rod", "Any Armour##armour", "Body Armour##armour.chest",
+                    "Boots##armour.boots", "Gloves##armour.gloves", "Helmet##armour.helmet",
+                    "Shield##armour.shield", "Quiver##armour.quiver", "Any Accessory##accessory",
+                    "Amulet##accessory.amulet", "Belt##accessory.belt", "Ring##accessory.ring",
+                    "Any Gem##gem", "Skill Gem##gem.activegem", "Support Gem##gem.supportgem",
+                    "Any Jewel##jewel", "Abyss Jewel##jewel.abyss", "Flask##flask", "Map##map",
+                    "Leaguestone##leaguestone", "Prophecy##prophecy", "Card##card",
+                    "Captured Beast##monster", "Any Currency##currency",
+                    "Unique Fragment##currency.piece", "Resonator##currency.resonator",
+                    "Fossil##currency.fossil"
+                }
+            },
+            { "ItemRarity", new List<string>()
+                {
+                    "Any##", "Normal##normal", "Magic##magic", "Rare##rare", "Unique##unique",
+                    "Unique (Relic)##uniquefoil", "Any Non-Unique##nonunique"
+                }
+            },
+            { "MapSeries", new List<string>()
+                {
+                    "Any##", "Betrayal##betrayal", "War for the Atlas##warfortheatlas",
+                    "Atlas of Worlds##atlasofworlds", "The Awakening##theawakening",
+                    "Legacy##original"
+                }
+            },
+            { "Boolean", new List<string>()
+                {
+                    "Any##", "Yes##true", "No##false"
+                }
+            },
+            { "ItemAge", new List<string>()
+                {
+                    "Any Time##", "Up to a Day Ago##1day", "Up to 3 Days Ago##3days",
+                    "Up to a Week Ago##1week", "Up to 2 Weeks Ago##2weeks",
+                    "Up to 1 Month Ago##1month", "Up to 2 Month Ago##2months"
+                }
+            },
+            { "PriceType", new List<string>()
+                {
+                    "Any##", "Buyout or Fixed Price##priced", "No Listed Price##unpriced"
+                }
+            },
+            {
+                "UserStatus", new List<string>()
+                {
+                    "Any##any", "Online Only##online"
+                }
+            },
+            {
+                "BuyoutCurrencyType", new List<string>()
+            },
+        };
+
+        /// <summary>
+        /// Maps the options to the Json data keys
+        /// </summary>
+        private static readonly Dictionary<string, string> OptionMapper = new Dictionary<string, string>()
+        {
+            { "Status", "UserStatus" },
+            { "Category", "ItemCategories" },
+            { "Rarity", "ItemRarity" }
+        };
+
+        /// <summary>
+        /// This structure stores the path in which the lib specific Json data should go to.
+        /// It looks at the lib specific Json data key to return a path
+        /// </summary>
+        private static readonly Dictionary<string, string[]> ParentsInfo = new Dictionary<string, string[]>()
+        {
+            { "Status", new string[] { "status" } },
+            { "Category", new string[] { "filters", "type_filters", "filters", "category" } },
+            { "Rarity", new string[] { "filters", "type_filters", "filters", "rarity" } },
+            { "Damage", new string[] { "filters", "weapon_filters", "filters", "damage" } },
+            { "Attacks Per Second", new string[] { "filters", "weapon_filters", "filters", "aps" } },
+            { "Critical Chance", new string[] { "filters", "weapon_filters", "filters", "crit" } },
+            { "Damage Per Second", new string[] { "filters", "weapon_filters", "filters", "dps" } },
+            { "Physical Dps", new string[] { "filters", "weapon_filters", "filters", "pdps" } },
+            { "Elemental Dps", new string[] { "filters", "weapon_filters", "filters", "edps" } },
+            { "Armour", new string[] { "filters", "armour_filters", "filters", "ar" } },
+            { "Evasion", new string[] { "filters", "armour_filters", "filters", "ev" } },
+            { "Energy Shield", new string[] { "filters", "armour_filters", "filters", "es" } },
+            { "Block", new string[] { "filters", "armour_filters", "filters", "block" } },
+        };
+
         /// <summary>
         /// This class seperate what to show on the UI (text) and
         /// what to send to the pathofexile server (id) via ## symbol.
@@ -28,102 +129,6 @@ namespace PoeTradeSharp
         /// auto hide everything after ## symbol.
         /// </summary>
         private static readonly string[] SeperatorTextId = new string[] { "##" };
-
-        /// <summary>
-        /// List of options available in pathofexile trading website item category.
-        /// ## seperates the text to display and id to send to the pathofexile server
-        /// In case of empty id, don't send anything to the server
-        /// </summary>
-        private static List<string> itemCategoriesOptions = new List<string>()
-        {
-            "Any##", "Any Weapon##weapon", "One-Handed Weapon##weapon.one",
-            "One-Handed Melee Weapon##weapon.onemelee", "Two-Handed Melee Weapon##weapon.twomelee",
-            "Bow##weapon.bow", "Claw##weapon.claw", "Dagger##weapon.dagger",
-            "One-Handed Axe##weapon.oneaxe", "One-Handed Mace##weapon.onemace",
-            "One-Handed Sword##weapon.onesword", "Sceptre##weapon.sceptre", "Staff##weapon.staff",
-            "Two-Handed Axe##weapon.twoaxe", "Two-Handed Mace##weapon.twomace",
-            "Two-Handed Sword##weapon.twosword", "Wand##weapon.wand", "Fishing Rod##weapon.rod",
-            "Any Armour##armour", "Body Armour##armour.chest", "Boots##armour.boots",
-            "Gloves##armour.gloves", "Helmet##armour.helmet", "Shield##armour.shield",
-            "Quiver##armour.quiver", "Any Accessory##accessory", "Amulet##accessory.amulet",
-            "Belt##accessory.belt", "Ring##accessory.ring", "Any Gem##gem",
-            "Skill Gem##gem.activegem", "Support Gem##gem.supportgem",
-            "Any Jewel##jewel", "Abyss Jewel##jewel.abyss", "Flask##flask", "Map##map",
-            "Leaguestone##leaguestone", "Prophecy##prophecy", "Card##card",
-            "Captured Beast##monster", "Any Currency##currency", "Unique Fragment##currency.piece",
-            "Resonator##currency.resonator", "Fossil##currency.fossil"
-        };
-
-        /// <summary>
-        /// List of options available in pathofexile trading website item rarity.
-        /// ## seperates the text to display and data to send to the pathofexile server
-        /// In case of empty id, don't send anything to the server
-        /// </summary>
-        private static List<string> itemRarityOptions = new List<string>()
-        {
-            "Any##", "Normal##normal", "Magic##magic", "Rare##rare", "Unique##unique",
-            "Unique (Relic)##uniquefoil", "Any Non-Unique##nonunique"
-        };
-
-        /// <summary>
-        /// List of options available in pathofexile trading website map series.
-        /// ## seperates the text to display and data to send to the pathofexile server
-        /// In case of empty id, don't send anything to the server
-        /// </summary>
-        private static List<string> mapSeriesOptions = new List<string>()
-        {
-            "Any##", "Betrayal##betrayal", "War for the Atlas##warfortheatlas",
-            "Atlas of Worlds##atlasofworlds", "The Awakening##theawakening", "Legacy##original"
-        };
-
-        /// <summary>
-        /// List of options available in pathofexile trading website boolean.
-        /// ## seperates the text to display and data to send to the pathofexile server
-        /// In case of empty id, don't send anything to the server
-        /// </summary>
-        private static List<string> booleanOptions = new List<string>()
-        {
-            "Any##", "Yes##true", "No##false"
-        };
-
-        /// <summary>
-        /// List of options available in pathofexile trading website item age.
-        /// ## seperates the text to display and data to send to the pathofexile server
-        /// In case of empty id, don't send anything to the server
-        /// </summary>
-        private static List<string> itemAgeOptions = new List<string>()
-        {
-            "Any Time##", "Up to a Day Ago##1day", "Up to 3 Days Ago##3days",
-            "Up to a Week Ago##1week", "Up to 2 Weeks Ago##2weeks",
-            "Up to 1 Month Ago##1month", "Up to 2 Month Ago##2months"
-        };
-
-        /// <summary>
-        /// List of options available in pathofexile trading website sale type.
-        /// ## seperates the text to display and data to send to the pathofexile server
-        /// In case of empty id, don't send anything to the server
-        /// </summary>
-        private static List<string> priceTypeOptions = new List<string>()
-        {
-            "Any##", "Buyout or Fixed Price##priced", "No Listed Price##unpriced"
-        };
-
-        /// <summary>
-        /// List of options available in pathofexile trading website user status.
-        /// ## seperates the text to display and data to send to the pathofexile server
-        /// In case of empty id, don't send anything to the server
-        /// </summary>
-        private static List<string> userStatusOptions = new List<string>()
-        {
-            "Any##any", "Online Only##online"
-        };
-
-        /// <summary>
-        /// List of options available in pathofexile trading website basic price.
-        /// ## seperates the text to display and data to send to the pathofexile server
-        /// In case of empty id, don't send anything to the server
-        /// </summary>
-        private static List<string> buyoutCurrencyTypeOptions = new List<string>();
 
         /// <summary>
         /// Initializes static members of the <see cref="FormData" /> class.
@@ -139,52 +144,52 @@ namespace PoeTradeSharp
                     continue;
                 }
 
-                buyoutCurrencyTypeOptions.Add($"{tmpData["text"]}##{tmpData["id"]}");
+                Options["BuyoutCurrencyType"].Add($"{tmpData["text"]}##{tmpData["id"]}");
             }
 
-            buyoutCurrencyTypeOptions.Sort();
-            buyoutCurrencyTypeOptions.Insert(0, "Chaos Orb Equivalent##");
+            Options["BuyoutCurrencyType"].Sort();
+            Options["BuyoutCurrencyType"].Insert(0, "Chaos Orb Equivalent##");
         }
 
         /// <summary>
         /// Gets the item rarity options
         /// </summary>
-        public static List<string> ItemRarityOptions { get => itemRarityOptions; }
+        public static List<string> ItemRarityOptions { get => Options["ItemRarity"]; }
 
         /// <summary>
         /// Gets the item category options
         /// </summary>
-        public static List<string> ItemCategoriesOptions { get => itemCategoriesOptions; }
+        public static List<string> ItemCategoriesOptions { get => Options["ItemCategories"]; }
 
         /// <summary>
         /// Gets the map series options
         /// </summary>
-        public static List<string> MapSeriesOptions { get => mapSeriesOptions; }
+        public static List<string> MapSeriesOptions { get => Options["MapSeries"]; }
 
         /// <summary>
         /// Gets the boolean options
         /// </summary>
-        public static List<string> BooleanOptions { get => booleanOptions; }
+        public static List<string> BooleanOptions { get => Options["Boolean"]; }
 
         /// <summary>
         /// Gets the item age options
         /// </summary>
-        public static List<string> ItemAgeOptions { get => itemAgeOptions; }
+        public static List<string> ItemAgeOptions { get => Options["ItemAge"]; }
 
         /// <summary>
         /// Gets the sale price type options
         /// </summary>
-        public static List<string> PriceTypeOptions { get => priceTypeOptions; }
+        public static List<string> PriceTypeOptions { get => Options["PriceType"]; }
 
         /// <summary>
         /// Gets the user status options
         /// </summary>
-        public static List<string> UserStatusOptions { get => userStatusOptions; }
+        public static List<string> UserStatusOptions { get => Options["UserStatus"]; }
 
         /// <summary>
         /// Gets the basic currency type options for buyout prices
         /// </summary>
-        public static List<string> BuyoutCurrencyTypeOptions { get => buyoutCurrencyTypeOptions; }
+        public static List<string> BuyoutCurrencyTypeOptions { get => Options["BuyoutCurrencyType"]; }
 
         /// <summary>
         /// Converts the form data to pathofexile trading website specific data
@@ -226,13 +231,25 @@ namespace PoeTradeSharp
                         league = obj["value"].ToString();
                         break;
                     case "Status":
-                        StatusParser(ref toReturn.query, obj["value"].ToString());
-                        break;
                     case "Category":
-                        CategoryParser(ref toReturn.query, obj["value"].ToString());
-                        break;
                     case "Rarity":
-                        RarityParser(ref toReturn.query, obj["value"].ToString());
+                        ComboBoxParser(key, ref toReturn.query, obj["value"].ToString());
+                        break;
+                    case "Damage":
+                    case "Attacks Per Second":
+                    case "Critical Chance":
+                    case "Damage Per Second":
+                    case "Physical Dps":
+                    case "Elemental Dps":
+                    case "Armour":
+                    case "Evasion":
+                    case "Energy Shield":
+                    case "Block":
+                        MinMaxParser(key, ref toReturn.query, obj["value"].ToObject<int[]>());
+                        break;
+                    case "Sockets":
+                    case "Links":
+                        SocketParser(key, ref toReturn.query, obj["value"].ToObject<int[]>());
                         break;
                     default:
                         System.Console.WriteLine(toReturn);
@@ -244,7 +261,37 @@ namespace PoeTradeSharp
         }
 
         /// <summary>
-        /// Helper function to parse the data associated with the UI key "Item Name"
+        /// A helper function to create the parent JObjects if they do not exist
+        /// </summary>
+        /// <param name="data">
+        /// JObject to save the result in, should be passed by reference
+        /// </param>
+        /// <param name="parents">
+        /// List of keys (in string format) to create in sorted order
+        /// </param>
+        /// <returns>
+        /// the last created ( leaf ) parent object
+        /// </returns>
+        private static dynamic CreateParentJObjectIfNotExists(ref dynamic data, string[] parents)
+        {
+            dynamic p = data;
+
+            // This works as it's pass by reference
+            foreach (var parent in parents)
+            {
+                if (!p.ContainsKey(parent))
+                {
+                    p[parent] = new JObject();
+                }
+
+                p = p[parent];
+            }
+
+            return p;
+        }
+
+        /// <summary>
+        /// A Helper function to parse the data associated with the UI key "Item Name"
         /// </summary>
         /// <param name="data">
         /// JObject to save the result in, should be passed by reference
@@ -290,102 +337,87 @@ namespace PoeTradeSharp
         }
 
         /// <summary>
-        /// Helper function to parse the data associated with the UI key "Status"
+        /// A helper function to parse the data associated with the Type Filters
         /// </summary>
+        /// <param name="filterName">
+        /// name of the filter, for debugging purposes
+        /// </param>
         /// <param name="data">
         /// JObject to save the result in, should be passed by reference
         /// </param>
         /// <param name="value">
-        /// data associated with the key in string format
+        /// value to parse and associate in string format
         /// </param>
-        private static void StatusParser(ref dynamic data, string value)
+        private static void ComboBoxParser(string filterName, ref dynamic data, string value)
         {
-            if (!userStatusOptions.Contains(value))
+            List<string> db = Options[OptionMapper[filterName]];
+            string[] parents = ParentsInfo[filterName];
+            if (!db.Contains(value))
             {
-                throw new Exception($"Invalid Status Option: {value}");
-            }
-
-            data.status = new JObject();
-            string id = value.Split(SeperatorTextId, StringSplitOptions.None)[1];
-            if (!string.IsNullOrEmpty(id))
-            {
-                data.status.option = id;
-            }
-        }
-
-        /// <summary>
-        /// Helper function to parse the data associated with the UI key "Item Category"
-        /// </summary>
-        /// <param name="data">
-        /// JObject to save the result in, should be passed by reference
-        /// </param>
-        /// <param name="value">
-        /// An element of ItemCategoriesOptions list.
-        /// </param>
-        private static void CategoryParser(ref dynamic data, string value)
-        {
-            if (!itemCategoriesOptions.Contains(value))
-            {
-                throw new Exception($"Invalid Category Option: {value}");
+                throw new Exception($"Invalid ${filterName} Option: {value}");
             }
 
             string id = value.Split(SeperatorTextId, StringSplitOptions.None)[1];
             if (!string.IsNullOrWhiteSpace(id))
             {
-                CreateParentJObjectIfNotExists(ref data, new string[] { "filters", "type_filters", "filters", "category" });
-                data.filters.type_filters.disabled = false;
-                data.filters.type_filters.filters.category.option = id;
-            }
-        }
+                CreateParentJObjectIfNotExists(ref data, parents).option = id;
 
-        /// <summary>
-        /// Helper function to parse the data associated with the UI key "Item Rarity"
-        /// </summary>
-        /// <param name="data">
-        /// JObject to save the result in, should be passed by reference
-        /// </param>
-        /// <param name="value">
-        /// An element of ItemRarityOptions list.
-        /// </param>
-        private static void RarityParser(ref dynamic data, string value)
-        {
-            if (!itemRarityOptions.Contains(value))
-            {
-                throw new Exception($"Invalid Rarity Option: {value}");
-            }
-
-            string id = value.Split(SeperatorTextId, StringSplitOptions.None)[1];
-            if (!string.IsNullOrWhiteSpace(id))
-            {
-                CreateParentJObjectIfNotExists(ref data, new string[] { "filters", "type_filters", "filters", "rarity" });
-                data.filters.type_filters.disabled = false;
-                data.filters.type_filters.filters.rarity.option = id;
-            }
-        }
-
-        /// <summary>
-        /// A helper function to create parent JObject path if they does not exist
-        /// </summary>
-        /// <param name="data">
-        /// JObject to save the result in, should be passed by reference
-        /// </param>
-        /// <param name="parents">
-        /// List of keys (in string format) to create in sorted order
-        /// </param>
-        private static void CreateParentJObjectIfNotExists(ref dynamic data, string[] parents)
-        {
-            dynamic p = data;
-
-            // This works as it's pass by reference
-            foreach (var parent in parents)
-            {
-                if (!p.ContainsKey(parent))
+                // This is an assumption, it might change in the future
+                if (parents.Length >= 2)
                 {
-                    p[parent] = new JObject();
+                    data[parents[0]][parents[1]].disabled = false;
                 }
-
-                p = p[parent];
             }
+        }
+
+        /// <summary>
+        /// A Helper function to parse the data containing minimum and maximum number
+        /// </summary>
+        /// <param name="filterName">
+        /// name of the filter, for debugging purposes
+        /// </param>
+        /// <param name="data">
+        /// JObject to save the result in, should be passed by reference
+        /// </param>
+        /// <param name="value">
+        /// array containing the minimum and maximum on index 0 and 1 respectively.
+        /// </param>
+        private static void MinMaxParser(string filterName, ref dynamic data, int[] value)
+        {
+            string[] parents = ParentsInfo[filterName];
+            if (value.Length != 2)
+            {
+                throw new Exception($"Invalid ${filterName} value length: {value.Length}");
+            }
+
+            dynamic tmpData = data;
+            if (value[0] > 0)
+            {
+                CreateParentJObjectIfNotExists(ref data, parents).min = value[0];
+                data[parents[0]][parents[1]].disabled = false;
+            }
+
+            if (value[1] > 0)
+            {
+                CreateParentJObjectIfNotExists(ref data, parents).max = value[1];
+                data[parents[0]][parents[1]].disabled = false;
+            }
+        }
+
+        /// <summary>
+        /// A helper function to parse the data associated with the sockets/links
+        /// </summary>
+        /// <param name="filterName">
+        /// name of the filter, for debugging purposes
+        /// </param>
+        /// <param name="data">
+        /// JObject to save the result in, should be passed by reference
+        /// </param>
+        /// <param name="value">
+        /// array containing the minimum and maximum on index 0 and 1 respectively.
+        /// </param>
+        private static void SocketParser(string filterName, ref dynamic data, int[] value)
+        {
         }
     }
 }
