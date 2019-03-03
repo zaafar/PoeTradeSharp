@@ -120,6 +120,8 @@ namespace PoeTradeSharp
             { "Evasion", new string[] { "filters", "armour_filters", "filters", "ev" } },
             { "Energy Shield", new string[] { "filters", "armour_filters", "filters", "es" } },
             { "Block", new string[] { "filters", "armour_filters", "filters", "block" } },
+            { "Sockets", new string[] { "filters", "socket_filters", "filters", "sockets" } },
+            { "Links", new string[] { "filters", "socket_filters", "filters", "links" } }
         };
 
         /// <summary>
@@ -224,6 +226,13 @@ namespace PoeTradeSharp
 
                 switch (key)
                 {
+                    // For adding/mofifying/removing ComboBoxParser update the following structures
+                    //     1: Options
+                    //     2: OptionMapper
+                    //     3: ParentsInfo
+
+                    // For adding/mofifying/removing MinMaxParser, SocketParser update following structures
+                    //     1: ParentsInfo
                     case "Item Name":
                         NameParser(ref toReturn.query, obj["value"].ToString());
                         break;
@@ -418,6 +427,23 @@ namespace PoeTradeSharp
         /// </param>
         private static void SocketParser(string filterName, ref dynamic data, int[] value)
         {
+            string[] parents = ParentsInfo[filterName];
+            string[] keys = new string[] { "r", "b", "g", "w", "min", "max" };
+
+            if (value.Length != 6)
+            {
+                throw new Exception($"Invalid ${filterName} value length: {value.Length}");
+            }
+
+            dynamic tmpData = data;
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (value[i] > 0)
+                {
+                    CreateParentJObjectIfNotExists(ref data, parents)[keys[i]] = value[i];
+                    data[parents[0]][parents[1]].disabled = false;
+                }
+            }
         }
     }
 }
