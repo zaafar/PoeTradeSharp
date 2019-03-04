@@ -431,11 +431,11 @@ namespace PoeTradeSharp
             string[] details = value.Split(':');
             if (details.Length != 2)
             {
-                throw new Exception($"Item name ({value}) must contain one : in it.");
+                throw new Exception($"Item name ({value} -> {details.Length}) must contain one : in it.");
             }
 
-            bool isNameEmpty = string.IsNullOrEmpty(details[0]);
-            bool isTypeEmpty = string.IsNullOrEmpty(details[0]);
+            bool isNameEmpty = string.IsNullOrWhiteSpace(details[0]);
+            bool isTypeEmpty = string.IsNullOrWhiteSpace(details[0]);
             if (!isNameEmpty)
             {
                 data.name = details[0];
@@ -446,9 +446,9 @@ namespace PoeTradeSharp
                 data.type = details[1];
             }
 
-            if (!(isTypeEmpty && isTypeEmpty))
+            if (isTypeEmpty && isTypeEmpty)
             {
-                throw new Exception($"Item name ({value}) must either contains a name or a type.");
+                throw new Exception($"Item name ({details[0]}, {details[1]}) must either contains a name or a type.");
             }
         }
 
