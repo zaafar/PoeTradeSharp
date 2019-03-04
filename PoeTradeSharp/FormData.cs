@@ -28,7 +28,8 @@ namespace PoeTradeSharp
         /// </summary>
         private static readonly Dictionary<string, List<string>> Options = new Dictionary<string, List<string>>()
         {
-            { "ItemCategories", new List<string>()
+            {
+                "ItemCategories", new List<string>()
                 {
                     "Any##", "Any Weapon##weapon", "One-Handed Weapon##weapon.one",
                     "One-Handed Melee Weapon##weapon.onemelee",
@@ -50,32 +51,37 @@ namespace PoeTradeSharp
                     "Fossil##currency.fossil"
                 }
             },
-            { "ItemRarity", new List<string>()
+            {
+                "ItemRarity", new List<string>()
                 {
                     "Any##", "Normal##normal", "Magic##magic", "Rare##rare", "Unique##unique",
                     "Unique (Relic)##uniquefoil", "Any Non-Unique##nonunique"
                 }
             },
-            { "MapSeries", new List<string>()
+            {
+                "MapSeries", new List<string>()
                 {
                     "Any##", "Betrayal##betrayal", "War for the Atlas##warfortheatlas",
                     "Atlas of Worlds##atlasofworlds", "The Awakening##theawakening",
                     "Legacy##original"
                 }
             },
-            { "Boolean", new List<string>()
+            {
+                "Boolean", new List<string>()
                 {
                     "Any##", "Yes##true", "No##false"
                 }
             },
-            { "ItemAge", new List<string>()
+            {
+                "ItemAge", new List<string>()
                 {
                     "Any Time##", "Up to a Day Ago##1day", "Up to 3 Days Ago##3days",
                     "Up to a Week Ago##1week", "Up to 2 Weeks Ago##2weeks",
                     "Up to 1 Month Ago##1month", "Up to 2 Month Ago##2months"
                 }
             },
-            { "PriceType", new List<string>()
+            {
+                "PriceType", new List<string>()
                 {
                     "Any##", "Buyout or Fixed Price##priced", "No Listed Price##unpriced"
                 }
@@ -83,7 +89,7 @@ namespace PoeTradeSharp
             {
                 "UserStatus", new List<string>()
                 {
-                    "Any##any", "Online Only##online"
+                    "Online Only##online", "Any##any"
                 }
             },
             {
@@ -98,7 +104,22 @@ namespace PoeTradeSharp
         {
             { "Status", "UserStatus" },
             { "Category", "ItemCategories" },
-            { "Rarity", "ItemRarity" }
+            { "Rarity", "ItemRarity" },
+            { "Shaped Map", "Boolean" },
+            { "Elder Map", "Boolean" },
+            { "Map Series", "MapSeries" },
+            { "Shaper Item", "Boolean" },
+            { "Elder Item", "Boolean" },
+            { "Alternate Art", "Boolean" },
+            { "Identified", "Boolean" },
+            { "Corrupted", "Boolean" },
+            { "Mirrored", "Boolean" },
+            { "Crafted", "Boolean" },
+            { "Veiled", "Boolean" },
+            { "Enchanged", "Boolean" },
+            { "Listed", "ItemAge" },
+            { "Sale Type", "PriceType" },
+            { "Buyout Price", "BuyoutCurrencyType" }
         };
 
         /// <summary>
@@ -108,20 +129,69 @@ namespace PoeTradeSharp
         private static readonly Dictionary<string, string[]> ParentsInfo = new Dictionary<string, string[]>()
         {
             { "Status", new string[] { "status" } },
+
+            // Type Filters
             { "Category", new string[] { "filters", "type_filters", "filters", "category" } },
             { "Rarity", new string[] { "filters", "type_filters", "filters", "rarity" } },
+
+            // Weapon Filters
             { "Damage", new string[] { "filters", "weapon_filters", "filters", "damage" } },
             { "Attacks Per Second", new string[] { "filters", "weapon_filters", "filters", "aps" } },
             { "Critical Chance", new string[] { "filters", "weapon_filters", "filters", "crit" } },
             { "Damage Per Second", new string[] { "filters", "weapon_filters", "filters", "dps" } },
             { "Physical Dps", new string[] { "filters", "weapon_filters", "filters", "pdps" } },
             { "Elemental Dps", new string[] { "filters", "weapon_filters", "filters", "edps" } },
+
+            // Armour Filters
             { "Armour", new string[] { "filters", "armour_filters", "filters", "ar" } },
             { "Evasion", new string[] { "filters", "armour_filters", "filters", "ev" } },
             { "Energy Shield", new string[] { "filters", "armour_filters", "filters", "es" } },
             { "Block", new string[] { "filters", "armour_filters", "filters", "block" } },
+
+            // Socket Filters
             { "Sockets", new string[] { "filters", "socket_filters", "filters", "sockets" } },
-            { "Links", new string[] { "filters", "socket_filters", "filters", "links" } }
+            { "Links", new string[] { "filters", "socket_filters", "filters", "links" } },
+
+            // Requirements
+            { "Level", new string[] { "filters", "req_filters", "filters", "lvl" } },
+            { "Strength", new string[] { "filters", "req_filters", "filters", "str" } },
+            { "Dexterity", new string[] { "filters", "req_filters", "filters", "dex" } },
+            { "Intelligence", new string[] { "filters", "req_filters", "filters", "int" } },
+
+            // Mod Filters
+            { "Minimum Empty Affix", new string[] { "filters", "mod_filters", "filters", "empty_affix" } },
+
+            // Map Filters
+            { "Map Tier", new string[] { "filters", "map_filters", "filters", "map_tier" } },
+            { "Map Pack Size", new string[] { "filters", "map_filters", "filters", "map_packsize" } },
+            { "Map IIQ", new string[] { "filters", "map_filters", "filters", "map_iiq" } },
+            { "Map IIR", new string[] { "filters", "map_filters", "filters", "map_iir" } },
+            { "Shaped Map", new string[] { "filters", "map_filters", "filters", "map_shaped" } },
+            { "Elder Map", new string[] { "filters", "map_filters", "filters", "map_elder" } },
+            { "Map Series", new string[] { "filters", "map_filters", "filters", "map_series" } },
+
+            // Miscellaneous
+            { "Quality", new string[] { "filters", "misc_filters", "filters", "quality" } },
+            { "Item Level", new string[] { "filters", "misc_filters", "filters", "ilvl" } },
+            { "Gem Level", new string[] { "filters", "misc_filters", "filters", "gem_level" } },
+            { "Gem Experience %", new string[] { "filters", "misc_filters", "filters", "gem_level_progress" } },
+            { "Shaper Item", new string[] { "filters", "misc_filters", "filters", "shaper_item" } },
+            { "Elder Item", new string[] { "filters", "misc_filters", "filters", "elder_item" } },
+            { "Alternate Art", new string[] { "filters", "misc_filters", "filters", "alternate_art" } },
+            { "Identified", new string[] { "filters", "misc_filters", "filters", "identified" } },
+            { "Corrupted", new string[] { "filters", "misc_filters", "filters", "corrupted" } },
+            { "Mirrored", new string[] { "filters", "misc_filters", "filters", "mirrored" } },
+            { "Crafted", new string[] { "filters", "misc_filters", "filters", "crafted" } },
+            { "Veiled", new string[] { "filters", "misc_filters", "filters", "veiled" } },
+            { "Enchanged", new string[] { "filters", "misc_filters", "filters", "enchanted" } },
+            { "Talisman Tier", new string[] { "filters", "misc_filters", "filters", "talisman_tier" } },
+
+            // Trade Filters
+            { "Seller Account", new string[] { "filters", "trade_filters", "filters", "account" } },
+            { "Listed", new string[] { "filters", "trade_filters", "filters", "indexed" } },
+            { "Sale Type", new string[] { "filters", "trade_filters", "filters", "sale_type" } },
+            { "Buyout Price", new string[] { "filters", "trade_filters", "filters", "price" } },
+            { "Buyout Price Range", new string[] { "filters", "trade_filters", "filters", "price" } },
         };
 
         /// <summary>
@@ -242,6 +312,22 @@ namespace PoeTradeSharp
                     case "Status":
                     case "Category":
                     case "Rarity":
+
+                    case "Shaped Map":
+                    case "Elder Map":
+                    case "Map Series":
+                    case "Shaper Item":
+                    case "Elder Item":
+                    case "Alternate Art":
+                    case "Identified":
+                    case "Corrupted":
+                    case "Mirrored":
+                    case "Crafted":
+                    case "Veiled":
+                    case "Enchanged":
+                    case "Listed":
+                    case "Sale Type":
+                    case "Buyout Price":
                         ComboBoxParser(key, ref toReturn.query, obj["value"].ToString());
                         break;
                     case "Damage":
@@ -254,11 +340,32 @@ namespace PoeTradeSharp
                     case "Evasion":
                     case "Energy Shield":
                     case "Block":
+                    case "Level":
+                    case "Strength":
+                    case "Dexterity":
+                    case "Intelligence":
+
+                    case "Map Tier":
+                    case "Map Pack Size":
+                    case "Map IIQ":
+                    case "Map IIR":
+                    case "Quality":
+                    case "Item Level":
+                    case "Gem Level":
+                    case "Gem Experience %":
+                    case "Talisman Tier":
+                    case "Buyout Price Range":
                         MinMaxParser(key, ref toReturn.query, obj["value"].ToObject<int[]>());
                         break;
                     case "Sockets":
                     case "Links":
                         SocketParser(key, ref toReturn.query, obj["value"].ToObject<int[]>());
+                        break;
+                    case "Minimum Empty Affix":
+                        AffixParser(key, ref toReturn.query, obj["value"].ToObject<int[]>());
+                        break;
+                    case "Seller Account":
+                        AccountNameParser(ref toReturn.query, obj["value"].ToString());
                         break;
                     default:
                         System.Console.WriteLine(toReturn);
@@ -300,7 +407,7 @@ namespace PoeTradeSharp
         }
 
         /// <summary>
-        /// A Helper function to parse the data associated with the UI key "Item Name"
+        /// A helper function to parse the data associated with the UI key "Item Name"
         /// </summary>
         /// <param name="data">
         /// JObject to save the result in, should be passed by reference
@@ -346,10 +453,35 @@ namespace PoeTradeSharp
         }
 
         /// <summary>
+        /// A helper function to parse the data associated with the UI key "Seller Account"
+        /// </summary>
+        /// <param name="data">
+        /// JObject to save the result in, should be passed by reference
+        /// </param>
+        /// <param name="value">
+        /// Seller account name to save in the Json object
+        /// </param>
+        private static void AccountNameParser(ref dynamic data, string value)
+        {
+            // This function isn't used anywhere else, so hardcoding the dict key.
+            string[] parents = ParentsInfo["Seller Account"];
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                CreateParentJObjectIfNotExists(ref data, parents).input = value;
+
+                // This is an assumption, it might change in the future
+                if (parents.Length >= 2)
+                {
+                    data[parents[0]][parents[1]].disabled = false;
+                }
+            }
+        }
+
+        /// <summary>
         /// A helper function to parse the data associated with the Type Filters
         /// </summary>
         /// <param name="filterName">
-        /// name of the filter, for debugging purposes
+        /// name of the filter
         /// </param>
         /// <param name="data">
         /// JObject to save the result in, should be passed by reference
@@ -380,10 +512,10 @@ namespace PoeTradeSharp
         }
 
         /// <summary>
-        /// A Helper function to parse the data containing minimum and maximum number
+        /// A helper function to parse the data containing minimum and maximum number
         /// </summary>
         /// <param name="filterName">
-        /// name of the filter, for debugging purposes
+        /// name of the filter
         /// </param>
         /// <param name="data">
         /// JObject to save the result in, should be passed by reference
@@ -393,31 +525,15 @@ namespace PoeTradeSharp
         /// </param>
         private static void MinMaxParser(string filterName, ref dynamic data, int[] value)
         {
-            string[] parents = ParentsInfo[filterName];
-            if (value.Length != 2)
-            {
-                throw new Exception($"Invalid ${filterName} value length: {value.Length}");
-            }
-
-            dynamic tmpData = data;
-            if (value[0] > 0)
-            {
-                CreateParentJObjectIfNotExists(ref data, parents).min = value[0];
-                data[parents[0]][parents[1]].disabled = false;
-            }
-
-            if (value[1] > 0)
-            {
-                CreateParentJObjectIfNotExists(ref data, parents).max = value[1];
-                data[parents[0]][parents[1]].disabled = false;
-            }
+            string[] keys = new string[] { "min", "max" };
+            ArrayParser(filterName, ref data, keys, value);
         }
 
         /// <summary>
         /// A helper function to parse the data associated with the sockets/links
         /// </summary>
         /// <param name="filterName">
-        /// name of the filter, for debugging purposes
+        /// name of the filter
         /// </param>
         /// <param name="data">
         /// JObject to save the result in, should be passed by reference
@@ -427,12 +543,51 @@ namespace PoeTradeSharp
         /// </param>
         private static void SocketParser(string filterName, ref dynamic data, int[] value)
         {
-            string[] parents = ParentsInfo[filterName];
             string[] keys = new string[] { "r", "b", "g", "w", "min", "max" };
+            ArrayParser(filterName, ref data, keys, value);
+        }
 
-            if (value.Length != 6)
+        /// <summary>
+        /// A helper function to parse the data associated with the affix filter
+        /// </summary>
+        /// <param name="filterName">
+        /// name of the filter
+        /// </param>
+        /// <param name="data">
+        /// JObject to save the result in, should be passed by reference
+        /// </param>
+        /// <param name="value">
+        /// array containing the data
+        /// </param>
+        private static void AffixParser(string filterName, ref dynamic data, int[] value)
+        {
+            string[] keys = new string[] { "prefix", "suffix", "total" };
+            ArrayParser(filterName, ref data, keys, value);
+        }
+
+        /// <summary>
+        /// A helper function to parse array and put it into the Json Object
+        /// </summary>
+        /// <param name="name">
+        /// name of the filter
+        /// </param>
+        /// <param name="data">
+        /// JObject to save the result in, should be passed by reference
+        /// </param>
+        /// <param name="keys">
+        /// List of key to put the value into respectively.
+        /// </param>
+        /// <param name="value">
+        /// array containing the data
+        /// </param>
+        private static void ArrayParser(string name, ref dynamic data, string[] keys, int[] value)
+        {
+            string[] parents = ParentsInfo[name];
+
+            if (value.Length != keys.Length)
             {
-                throw new Exception($"Invalid ${filterName} value length: {value.Length}");
+                throw new Exception($"Invalid ${name} value length " +
+                    $"(expects {keys.Length}): {value.Length}");
             }
 
             dynamic tmpData = data;
