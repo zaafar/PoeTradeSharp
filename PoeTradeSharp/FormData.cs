@@ -270,9 +270,9 @@ namespace PoeTradeSharp
         /// Form data in JArray format
         /// </param>
         /// <returns>
-        /// pathofexile trading website specific Json data
+        /// pathofexile trading website specific Json data in string format
         /// </returns>
-        public static JObject Parse(JArray data)
+        public static string Parse(JArray data)
         {
             string league = string.Empty;
 
@@ -368,12 +368,11 @@ namespace PoeTradeSharp
                         AccountNameParser(ref toReturn.query, obj["value"].ToString());
                         break;
                     default:
-                        System.Console.WriteLine(toReturn);
                         throw new Exception($"Unknown Key: {obj}");
                 }
             }
 
-            return toReturn;
+            return toReturn.toString();
         }
 
         /// <summary>
