@@ -67,31 +67,73 @@ namespace PoeTradeSharp
         }
 
         /// <summary>
-        /// Gets or sets the Maximum number of items a client can ask in a single request
+        /// Gets the maximum number of items a client can ask in a single request
         /// </summary>
-        public static int MaxItemLimit { get; set; } = 10;
+        public static int MaxItemLimit { get; } = 10;
 
         /// <summary>
-        /// Gets or sets the Maximum number of bulk items a client can ask in a single request
+        /// Gets the maximum number of bulk items a client can ask in a single request
         /// </summary>
-        public static int MaxBulkItemLimit { get; set; } = 20;
+        public static int MaxBulkItemLimit { get; } = 20;
 
         /// <summary>
-        ///     gets the new item data synchronously.
-        ///     Depends on the dataId (which we get from websocket protocal)
-        ///     and pattern to figure out which new item are we requesting for.
+        /// This function converts the list of hashes into the list of csv strings.
+        /// Where each csv string is up to the maximum number of allowed hashes by
+        /// pathofexile trading website.
+        /// </summary>
+        /// <param name="hashes">
+        /// List of item hashes
+        /// </param>
+        /// <param name="maxHashesLimit">
+        /// Maximum number of hashes allowed in a single csv string.
+        /// This value is stored in RestClient.MaxItemLimit or RestClient.MaxBulkItemLimit.
+        /// </param>
+        /// <returns>
+        /// List of hashes in csv string format
+        /// </returns>
+        public static List<string> ConvertHashesListToCSVStringList(JArray hashes, int maxHashesLimit)
+        {
+            string tmpHashes = string.Empty;
+            List<string> toReturn = new List<string>();
+            for (int i = 0; i < hashes.Count; i++)
+            {
+                tmpHashes += hashes[i];
+                if ((i + 1) % maxHashesLimit == 0)
+                {
+                    toReturn.Add(tmpHashes);
+                    tmpHashes = string.Empty;
+                }
+                else if ((i + 1) < hashes.Count)
+                {
+                    // It's not the last hash in the hashes list
+                    tmpHashes += ",";
+                }
+                else
+                {
+                    toReturn.Add(tmpHashes);
+                    tmpHashes = string.Empty;
+                }
+            }
+
+            return toReturn;
+        }
+
+        /// <summary>
+        ///     Given the comma seperated hashes, this function gets the item information
+        ///     corrsponding to those hashes.
         /// </summary>
         /// <param name="pattern">
-        ///     Wierd hash associated with a poe.trade search
+        ///     Pattern associated with a pathofexile trade search
         ///     e.g. Ab3LSL in https://www.pathofexile.com/trade/search/Standard/Ab3LSL
         /// </param>
-        /// <param name="dataIds">
-        ///     comma seperated dataIds related to the items we want to fetch
+        /// <param name="csvHashes">
+        ///     comma seperated item hashes
         ///     e.g. c0847c74c32fc2f884fc8445413e96574248ece6a665e21535283938164234b2,
         ///     023d61ba6f18913d41d80427c6a3e8403d3a84aec3900eca200aa415c5a326ce
         ///     If using websockets, this will be returned by the websocket server.
-        ///     There is a maximum limit of 30 items. If there are more than 30 items
-        ///     You have to make a new call every 30 item.
+        ///     There is a maximum limit set by the server on the number of hashes
+        ///     a caller can ask for in a single request. Re-call this function again
+        ///     in case caller has to ask for more number of hashes than allowed.
         /// </param>
         /// <param name="isBulk">
         ///     Getting information from Bulk Item Exchange?
@@ -99,7 +141,7 @@ namespace PoeTradeSharp
         /// <returns>
         ///     RestCallData object containing response and error code
         /// </returns>
-        public static JObject GetNewItems(string pattern, string dataIds, bool isBulk)
+        public static JObject GetItemInfoFromHashes(string pattern, string csvHashes, bool isBulk)
         {
             WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
             webClient.Headers[HttpRequestHeader.ContentType] = "application/json";
@@ -109,160 +151,7 @@ namespace PoeTradeSharp
                 webClient.QueryString.Set("exchange", string.Empty);
             }
 
-            return MakeRequest(webClient, $"{PoeHTTPSFetchURL}/{dataIds}", "GET");
-        }
-
-        /// <summary>
-        /// Downloads png file from a URL.
-        /// </summary>
-        /// <param name="url">
-        ///    url of the image to download
-        /// </param>
-        /// <returns>
-        /// png file in byte[] format
-        /// </returns>
-        public static byte[] GetItemImage(string url)
-        {
-            WebClient webClient = new WebClient();
-            return webClient.DownloadData(url);
-        }
-
-        /// <summary>
-        /// For doing a bulk search in pathofexile trading website.
-        /// </summary>
-        /// <param name="league">
-        ///   League to perform the bulk search in.
-        /// </param>
-        /// <param name="want">
-        ///   List of items you want to buy
-        /// </param>
-        /// <param name="have">
-        ///   List of items you want to sell
-        /// </param>
-        /// <param name="isOnlineRequired">
-        ///   Should the seller by online.
-        /// </param>
-        /// <param name="minimumStack">
-        ///   Minimum stock of that item. 0 means don't care, show all
-        /// </param>
-        /// <returns>
-        ///   Returns a JObject with following keys
-        ///     "result" List (JArray) of Items (JObjects) containing the seller/item information.
-        ///     "total" -> total number of elements in the "result" list
-        ///     "error" -> error number in case of any error otherwise returns 0.
-        ///     "pattern" -> Item pattern returned by the server
-        /// </returns>
-        public static JObject SearchForBulkItem(string league, List<string> want, List<string> have, bool isOnlineRequired = true, int minimumStack = 0)
-        {
-            string fullQuery = "{ \"exchange\" : { \"status\" : { \"option\" : \"online\" }, \"have\" : [ ], \"want\" : [ ] } }";
-            JObject query = JObject.Parse(fullQuery);
-            if (!isOnlineRequired)
-            {
-                query["exchange"]["status"]["option"] = "any";
-            }
-
-            if (minimumStack > 0)
-            {
-                query["exchange"]["minimum"] = minimumStack;
-            }
-
-            if (have.Count > 0)
-            {
-                query["exchange"]["have"] = new JArray(have);
-            }
-
-            if (want.Count > 0)
-            {
-                query["exchange"]["want"] = new JArray(want);
-            }
-
-            JObject sellerData = PostItemQuery(league, query.ToString(), true);
-            string pattern = sellerData["id"].ToObject<string>();
-            int totalSellers = sellerData["total"].ToObject<int>();
-            List<string> sellerHashes = sellerData["result"].ToObject<List<string>>();
-            JObject allItems = new JObject();
-            string csvIds = string.Empty;
-
-            for (int i = 0; i < totalSellers; i++)
-            {
-                csvIds += sellerHashes[i];
-
-                // Server doesn't accept more than 20 Ids in a single request
-                if ((i + 1) % MaxBulkItemLimit == 0)
-                {
-                    allItems.Merge(RestClient.GetNewItems(pattern, csvIds, true));
-                    csvIds = string.Empty;
-                }
-                else if ((i + 1) < totalSellers)
-                {
-                    csvIds += ",";
-                }
-                else
-                {
-                    allItems.Merge(RestClient.GetNewItems(pattern, csvIds, true));
-                    csvIds = string.Empty;
-                }
-            }
-
-            // Adding additional information to the JObject structure.
-            allItems["total"] = totalSellers;
-            allItems["pattern"] = pattern;
-            return allItems;
-        }
-
-        /// <summary>
-        /// For doing an item search in pathofexile trading website.
-        /// </summary>
-        /// <param name="league">
-        /// League to perform the search in.
-        /// </param>
-        /// <param name="jsonQuery">
-        /// Json query containing the criteria for item to match
-        /// </param>
-        /// <returns>
-        /// JObject containing all the items
-        /// </returns>
-        public static JObject SearchForItems(string league, string jsonQuery)
-        {
-            JObject sellerData = PostItemQuery(league, jsonQuery, false);
-            string pattern = sellerData["id"].ToObject<string>();
-            int totalSellers = sellerData["total"].ToObject<int>();
-
-            // Server does not return more than 200 items.
-            if (totalSellers > 200)
-            {
-                totalSellers = 200;
-            }
-
-            List<string> sellerHashes = sellerData["result"].ToObject<List<string>>();
-            JObject allItems = new JObject();
-            string csvIds = string.Empty;
-
-            for (int i = 0; i < totalSellers; i++)
-            {
-                csvIds += sellerHashes[i];
-
-                // Server doesn't accept more than 10 Ids in a single request
-                if ((i + 1) % MaxItemLimit == 0)
-                {
-                    allItems.Merge(RestClient.GetNewItems(pattern, csvIds, false));
-                    csvIds = string.Empty;
-                }
-                else if ((i + 1) < totalSellers)
-                {
-                    csvIds += ",";
-                }
-                else
-                {
-                    allItems.Merge(RestClient.GetNewItems(pattern, csvIds, false));
-                    csvIds = string.Empty;
-                }
-            }
-
-            // Adding additional information to the JObject structure.
-            allItems["total"] = totalSellers;
-            allItems["pattern"] = pattern;
-            return allItems;
+            return MakeRequest(webClient, $"{PoeHTTPSFetchURL}/{csvHashes}", "GET");
         }
 
         /// <summary>
@@ -283,7 +172,7 @@ namespace PoeTradeSharp
         /// <returns>
         ///   A JSON object containing item search result hashes and item pattern
         /// </returns>
-        private static JObject PostItemQuery(string league, string jsonQuery, bool isBulk)
+        public static JObject FetchHashesFromQuery(string league, string jsonQuery, bool isBulk)
         {
             WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
             webClient.Headers[HttpRequestHeader.ContentType] = "application/json";

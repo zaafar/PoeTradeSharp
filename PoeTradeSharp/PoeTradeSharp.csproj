@@ -50,6 +50,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BulkFormData.cs" />
     <Compile Include="CurrencyTradeAnalysis.cs" />
     <Compile Include="FormData.cs" />
     <Compile Include="ItemInfo.cs" />

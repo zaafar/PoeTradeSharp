@@ -108,9 +108,9 @@ namespace PoeTradeSharp
         public bool IsConnected { get; private set; }
 
         /// <summary>
-        /// Gets or sets the Maximum number of items a client can ask in a single request
+        /// Gets the Maximum number of items a client can ask in a single request
         /// </summary>
-        public int MaxItemLimit { get; set; } = 10;
+        public int MaxItemLimit { get; } = 10;
 
         /// <summary>
         /// Async Connect to the Websocket server.
@@ -204,27 +204,27 @@ namespace PoeTradeSharp
         /// </param>
         private void GetNewItems(Stack<string> ids)
         {
-            string csvIds = string.Empty;
+            string csvHashes = string.Empty;
             int counter = 0;
             while (ids.Count > 0)
             {
-                csvIds += ids.Pop();
+                csvHashes += ids.Pop();
                 counter++;
                 if (counter >= this.MaxItemLimit)
                 {
-                    this.ParseResponse(RestClient.GetNewItems(this.ItemPattern, csvIds, false));
+                    this.ParseResponse(RestClient.GetItemInfoFromHashes(this.ItemPattern, csvHashes, false));
                     counter = 0;
-                    csvIds = string.Empty;
+                    csvHashes = string.Empty;
                 }
                 else if (ids.Count > 0)
                 {
-                    csvIds += ",";
+                    csvHashes += ",";
                 }
             }
 
-            if (!string.IsNullOrEmpty(csvIds))
+            if (!string.IsNullOrEmpty(csvHashes))
             {
-                this.ParseResponse(RestClient.GetNewItems(this.ItemPattern, csvIds, false));
+                this.ParseResponse(RestClient.GetItemInfoFromHashes(this.ItemPattern, csvHashes, false));
             }
         }
 
