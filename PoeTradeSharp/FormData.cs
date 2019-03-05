@@ -434,20 +434,20 @@ namespace PoeTradeSharp
             }
 
             bool isNameEmpty = string.IsNullOrWhiteSpace(details[0]);
-            bool isTypeEmpty = string.IsNullOrWhiteSpace(details[0]);
             if (!isNameEmpty)
             {
                 data.name = details[0];
             }
 
+            bool isTypeEmpty = string.IsNullOrWhiteSpace(details[1]);
             if (!isTypeEmpty)
             {
                 data.type = details[1];
             }
 
-            if (isTypeEmpty && isTypeEmpty)
+            if (isNameEmpty && isTypeEmpty)
             {
-                throw new Exception($"Item name ({details[0]}, {details[1]}) must either contains a name or a type.");
+                throw new Exception($"Item name ({details[0]},{details[1]}) must either contains a name or a type respectively.");
             }
         }
 
