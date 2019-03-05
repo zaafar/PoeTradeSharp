@@ -372,7 +372,7 @@ namespace PoeTradeSharp
                 }
             }
 
-            return toReturn.toString();
+            return toReturn.ToString();
         }
 
         /// <summary>
