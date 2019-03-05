@@ -69,7 +69,12 @@ namespace PoeTradeSharp
         /// <summary>
         /// Gets or sets the Maximum number of items a client can ask in a single request
         /// </summary>
-        public static int MaxItemLimit { get; set; } = 20;
+        public static int MaxItemLimit { get; set; } = 10;
+
+        /// <summary>
+        /// Gets or sets the Maximum number of bulk items a client can ask in a single request
+        /// </summary>
+        public static int MaxBulkItemLimit { get; set; } = 20;
 
         /// <summary>
         ///     gets the new item data synchronously.
@@ -94,7 +99,7 @@ namespace PoeTradeSharp
         /// <returns>
         ///     RestCallData object containing response and error code
         /// </returns>
-        public static JObject GetNewItems(string pattern, string dataIds, bool isBulk = false)
+        public static JObject GetNewItems(string pattern, string dataIds, bool isBulk)
         {
             WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
             webClient.Headers[HttpRequestHeader.ContentType] = "application/json";
@@ -171,7 +176,7 @@ namespace PoeTradeSharp
                 query["exchange"]["want"] = new JArray(want);
             }
 
-            JObject sellerData = SearchForItem(league, query.ToString(), true);
+            JObject sellerData = PostItemQuery(league, query.ToString(), true);
             string pattern = sellerData["id"].ToObject<string>();
             int totalSellers = sellerData["total"].ToObject<int>();
             List<string> sellerHashes = sellerData["result"].ToObject<List<string>>();
@@ -183,7 +188,7 @@ namespace PoeTradeSharp
                 csvIds += sellerHashes[i];
 
                 // Server doesn't accept more than 20 Ids in a single request
-                if ((i + 1) % MaxItemLimit == 0)
+                if ((i + 1) % MaxBulkItemLimit == 0)
                 {
                     allItems.Merge(RestClient.GetNewItems(pattern, csvIds, true));
                     csvIds = string.Empty;
@@ -206,7 +211,62 @@ namespace PoeTradeSharp
         }
 
         /// <summary>
-        /// This function search for an item in the pathofexile database
+        /// For doing an item search in pathofexile trading website.
+        /// </summary>
+        /// <param name="league">
+        /// League to perform the search in.
+        /// </param>
+        /// <param name="jsonQuery">
+        /// Json query containing the criteria for item to match
+        /// </param>
+        /// <returns>
+        /// JObject containing all the items
+        /// </returns>
+        public static JObject SearchForItems(string league, string jsonQuery)
+        {
+            JObject sellerData = PostItemQuery(league, jsonQuery, false);
+            string pattern = sellerData["id"].ToObject<string>();
+            int totalSellers = sellerData["total"].ToObject<int>();
+
+            // Server does not return more than 200 items.
+            if (totalSellers > 200)
+            {
+                totalSellers = 200;
+            }
+
+            List<string> sellerHashes = sellerData["result"].ToObject<List<string>>();
+            JObject allItems = new JObject();
+            string csvIds = string.Empty;
+
+            for (int i = 0; i < totalSellers; i++)
+            {
+                csvIds += sellerHashes[i];
+
+                // Server doesn't accept more than 10 Ids in a single request
+                if ((i + 1) % MaxItemLimit == 0)
+                {
+                    allItems.Merge(RestClient.GetNewItems(pattern, csvIds, false));
+                    csvIds = string.Empty;
+                }
+                else if ((i + 1) < totalSellers)
+                {
+                    csvIds += ",";
+                }
+                else
+                {
+                    allItems.Merge(RestClient.GetNewItems(pattern, csvIds, false));
+                    csvIds = string.Empty;
+                }
+            }
+
+            // Adding additional information to the JObject structure.
+            allItems["total"] = totalSellers;
+            allItems["pattern"] = pattern;
+            return allItems;
+        }
+
+        /// <summary>
+        /// This function post a Json query in the pathofexile database
         /// and returns the item pattern and hash of the matches.
         /// </summary>
         /// <param name="league">
@@ -223,7 +283,7 @@ namespace PoeTradeSharp
         /// <returns>
         ///   A JSON object containing item search result hashes and item pattern
         /// </returns>
-        private static JObject SearchForItem(string league, string jsonQuery, bool isBulk = false)
+        private static JObject PostItemQuery(string league, string jsonQuery, bool isBulk)
         {
             WebClient webClient = new WebClient() { Encoding = Encoding.UTF8 };
             webClient.Headers[HttpRequestHeader.ContentType] = "application/json";

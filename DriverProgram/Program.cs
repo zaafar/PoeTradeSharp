@@ -16,18 +16,23 @@
             Thread.Sleep(100 * 1000);
             p.ItemAdded -= P_ItemAdded;
             return;*/
-            Console.WriteLine("Closing...");
-            string league = RestClient.Leagues["result"][0]["id"].ToObject<string>();
+
+            //string data = System.IO.File.ReadAllText(@"C:\Users\Zaafar Ahmed\Desktop\sampleOutput.txt");
+            //var k = RestClient.SearchForItems("Standard", data);
+            //Console.WriteLine(k.ToString());
+            //Console.WriteLine("Closing...");
+
+            /*string league = RestClient.Leagues["result"][0]["id"].ToObject<string>();
             var items1 = RestClient.SearchForBulkItem(league,
                                                      new List<string>() { "chaos" },
-                                                     new List<string>() { "fuse" });
+                                                     new List<string>() { "exalt" });
             Console.WriteLine(items1["total"]);
             for (int i = 0; i < (int)items1["total"].ToObject<int>(); i+=10)
             {
                 var result1 = CurrencyTradeAnalysis.GetAvergeExchangeRate(items1, i, 10);
                 Console.WriteLine($" start {i} end {i+10} result: {result1} opposite {1 / result1}");
             }
-
+            */
             //var items2 = RestClient.SearchForBulkItem(league,
             //                             new List<string>() { "chaos" },
             //                             new List<string>() { "scour" });

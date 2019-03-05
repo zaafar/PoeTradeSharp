@@ -212,7 +212,7 @@ namespace PoeTradeSharp
                 counter++;
                 if (counter >= this.MaxItemLimit)
                 {
-                    this.ParseResponse(RestClient.GetNewItems(this.ItemPattern, csvIds));
+                    this.ParseResponse(RestClient.GetNewItems(this.ItemPattern, csvIds, false));
                     counter = 0;
                     csvIds = string.Empty;
                 }
@@ -224,7 +224,7 @@ namespace PoeTradeSharp
 
             if (!string.IsNullOrEmpty(csvIds))
             {
-                this.ParseResponse(RestClient.GetNewItems(this.ItemPattern, csvIds));
+                this.ParseResponse(RestClient.GetNewItems(this.ItemPattern, csvIds, false));
             }
         }
 
