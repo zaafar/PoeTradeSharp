@@ -312,7 +312,6 @@ namespace PoeTradeSharp
                     case "Status":
                     case "Category":
                     case "Rarity":
-
                     case "Shaped Map":
                     case "Elder Map":
                     case "Map Series":
@@ -324,7 +323,7 @@ namespace PoeTradeSharp
                     case "Mirrored":
                     case "Crafted":
                     case "Veiled":
-                    case "Enchanged":
+                    case "Enchanted":
                     case "Listed":
                     case "Sale Type":
                     case "Buyout Price":
@@ -344,7 +343,6 @@ namespace PoeTradeSharp
                     case "Strength":
                     case "Dexterity":
                     case "Intelligence":
-
                     case "Map Tier":
                     case "Map Pack Size":
                     case "Map IIQ":
