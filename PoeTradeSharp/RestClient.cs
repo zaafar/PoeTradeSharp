@@ -181,6 +181,21 @@ namespace PoeTradeSharp
         }
 
         /// <summary>
+        /// Downloads the Image in png format
+        /// </summary>
+        /// <param name="url">
+        /// Image Url
+        /// </param>
+        /// <returns>
+        /// Image Byte code
+        /// </returns>
+        public static byte[] GetPoeImage(string url)
+        {
+            WebClient webClient = new WebClient();
+            return webClient.DownloadData(url);
+        }
+
+        /// <summary>
         /// Private function to send the requests to pathofexile trading website
         /// and lookout for the rate limit issues or any other errors.
         /// </summary>

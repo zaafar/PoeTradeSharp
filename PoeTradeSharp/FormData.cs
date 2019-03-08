@@ -110,13 +110,15 @@ namespace PoeTradeSharp
             { "Map Series", "MapSeries" },
             { "Shaper Item", "Boolean" },
             { "Elder Item", "Boolean" },
+            { "Fractured Item", "Boolean" },
+            { "Synthesised Item", "Boolean" },
             { "Alternate Art", "Boolean" },
             { "Identified", "Boolean" },
             { "Corrupted", "Boolean" },
             { "Mirrored", "Boolean" },
             { "Crafted", "Boolean" },
             { "Veiled", "Boolean" },
-            { "Enchanged", "Boolean" },
+            { "Enchanted", "Boolean" },
             { "Listed", "ItemAge" },
             { "Sale Type", "PriceType" },
             { "Buyout Price", "BuyoutCurrencyType" }
@@ -177,13 +179,15 @@ namespace PoeTradeSharp
             { "Gem Experience %", new string[] { "filters", "misc_filters", "filters", "gem_level_progress" } },
             { "Shaper Item", new string[] { "filters", "misc_filters", "filters", "shaper_item" } },
             { "Elder Item", new string[] { "filters", "misc_filters", "filters", "elder_item" } },
+            { "Fractured Item", new string[] { "filters", "misc_filters", "filters", "fractured_item" } },
+            { "Synthesised Item", new string[] { "filters", "misc_filters", "filters", "synthesised_item" } },
             { "Alternate Art", new string[] { "filters", "misc_filters", "filters", "alternate_art" } },
             { "Identified", new string[] { "filters", "misc_filters", "filters", "identified" } },
             { "Corrupted", new string[] { "filters", "misc_filters", "filters", "corrupted" } },
             { "Mirrored", new string[] { "filters", "misc_filters", "filters", "mirrored" } },
             { "Crafted", new string[] { "filters", "misc_filters", "filters", "crafted" } },
             { "Veiled", new string[] { "filters", "misc_filters", "filters", "veiled" } },
-            { "Enchanged", new string[] { "filters", "misc_filters", "filters", "enchanted" } },
+            { "Enchanted", new string[] { "filters", "misc_filters", "filters", "enchanted" } },
             { "Talisman Tier", new string[] { "filters", "misc_filters", "filters", "talisman_tier" } },
 
             // Trade Filters
@@ -317,6 +321,8 @@ namespace PoeTradeSharp
                     case "Map Series":
                     case "Shaper Item":
                     case "Elder Item":
+                    case "Fractured Item":
+                    case "Synthesised Item":
                     case "Alternate Art":
                     case "Identified":
                     case "Corrupted":
