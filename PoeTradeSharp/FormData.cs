@@ -283,11 +283,7 @@ namespace PoeTradeSharp
             dynamic toReturn = new JObject();
             toReturn.sort = new JObject();
             toReturn.sort.price = "asc";
-
             toReturn.query = new JObject();
-
-            // TODO: this class implements a statParser function
-            toReturn.query.stats = JArray.Parse("[{\"filters\": [], \"type\": \"and\"}]");
             string key = string.Empty;
             foreach (var obj in data)
             {
@@ -376,6 +372,8 @@ namespace PoeTradeSharp
                 }
             }
 
+            // TODO: this class implements a statParser function
+            toReturn.query.stats = JArray.Parse("[{\"filters\": [], \"type\": \"and\"}]");
             return toReturn.ToString();
         }
 

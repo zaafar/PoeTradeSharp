@@ -56,6 +56,11 @@ namespace PoeTradeSharp
         private const string PoeMetaDataURL = "https://www.pathofexile.com/api/trade/data";
 
         /// <summary>
+        /// PathOfExile User Account Cookie.
+        /// </summary>
+        private static string userSessionCookie = string.Empty;
+
+        /// <summary>
         ///  Initializes static members of the <see cref="RestClient" /> class.
         /// </summary>
         static RestClient()
@@ -181,6 +186,17 @@ namespace PoeTradeSharp
         }
 
         /// <summary>
+        /// Set the PathOfExile session Cookie
+        /// </summary>
+        /// <param name="cookie">
+        /// Cookie value to set
+        /// </param>
+        public static void SetSessionCookie(string cookie)
+        {
+            userSessionCookie = cookie;
+        }
+
+        /// <summary>
         /// Downloads the Image in png format
         /// </summary>
         /// <param name="url">
@@ -216,6 +232,11 @@ namespace PoeTradeSharp
         /// </returns>
         private static JObject MakeRequest(WebClient webClient, string url, string method, string data = "")
         {
+            if (!string.IsNullOrWhiteSpace(userSessionCookie))
+            {
+                webClient.Headers.Add(HttpRequestHeader.Cookie, userSessionCookie);
+            }
+
             byte[] response = Encoding.UTF8.GetBytes("{\"error\": 0}");
             int errorCode = 0;
             try

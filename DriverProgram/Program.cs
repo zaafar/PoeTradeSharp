@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading;
+    using Newtonsoft.Json.Linq;
     using PoeTradeSharp;
 
     class Program
@@ -18,8 +19,10 @@
             return;*/
 
             //string data = System.IO.File.ReadAllText(@"C:\Users\Zaafar Ahmed\Desktop\sampleOutput.txt");
+            //var k = FormData.Parse(JArray.Parse(data));
+            var k = RestClient.GetPoeImage(@"https://web.poecdn.com/image/Art/2DItems/Jewels/PoisonDamageModifier.png?scale=1&w=1&h=1&v=70643080a1ee44e3b496bfde4ed08430");
             //var k = RestClient.SearchForItems("Standard", data);
-            //Console.WriteLine(k.ToString());
+            Console.WriteLine(k.Length);
             //Console.WriteLine("Closing...");
 
             /*string league = RestClient.Leagues["result"][0]["id"].ToObject<string>();
