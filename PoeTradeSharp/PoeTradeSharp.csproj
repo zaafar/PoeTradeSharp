@@ -52,6 +52,9 @@
   <ItemGroup>
     <Compile Include="BulkFormData.cs" />
     <Compile Include="CurrencyTradeAnalysis.cs" />
+    <Compile Include="Enums\FrameType.cs" />
+    <Compile Include="Enums\PropertyDisplayMode.cs" />
+    <Compile Include="Enums\PropertyValueStyle.cs" />
     <Compile Include="FormData.cs" />
     <Compile Include="ItemInfo.cs" />
     <Compile Include="Log.cs" />
