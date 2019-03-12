@@ -56,6 +56,7 @@
     <Compile Include="Enums\PropertyDisplayMode.cs" />
     <Compile Include="Enums\PropertyValueStyle.cs" />
     <Compile Include="FormData.cs" />
+    <Compile Include="Helpers.cs" />
     <Compile Include="ItemInfo.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
