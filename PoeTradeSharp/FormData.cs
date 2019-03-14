@@ -61,7 +61,7 @@ namespace PoeTradeSharp
             {
                 "MapSeries", new List<string>()
                 {
-                    "Any##", "Betrayal##betrayal", "War for the Atlas##warfortheatlas",
+                    "Any##", "Synthesis##synthesis", "Betrayal##betrayal", "War for the Atlas##warfortheatlas",
                     "Atlas of Worlds##atlasofworlds", "The Awakening##theawakening",
                     "Legacy##original"
                 }
@@ -273,16 +273,22 @@ namespace PoeTradeSharp
         /// <param name="data">
         /// Form data in JArray format
         /// </param>
+        /// <param name="sortOn">
+        /// On which thing the data should be sorted on
+        /// </param>
+        /// <param name="sortType">
+        /// "asc" or "desc" for ascending or descending order respectively
+        /// </param>
         /// <returns>
         /// pathofexile trading website specific Json data in string format
         /// </returns>
-        public static string Parse(JArray data)
+        public static string Parse(JArray data, string sortOn = "price", string sortType = "asc")
         {
             string league = string.Empty;
 
             dynamic toReturn = new JObject();
             toReturn.sort = new JObject();
-            toReturn.sort.price = "asc";
+            toReturn.sort[sortOn] = sortType;
             toReturn.query = new JObject();
             string key = string.Empty;
             foreach (var obj in data)

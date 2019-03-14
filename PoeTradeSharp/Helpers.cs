@@ -10,8 +10,14 @@ namespace PoeTradeSharp
     public static class Helpers
     {
         /// <summary>
-        /// This function converts the result -> 0 -> item -> properties ---select property-> type value
-        /// to the Field that should be send to the server for sorting asc/dec.
+        /// This list is manually extracted from
+        /// following JavaScript file returned by the server
+        /// -> go to pathofexile.com/trade
+        /// -> open inspect
+        /// -> go to Debugger
+        /// -> go to following file
+        ///       web.poecdn.com -> js -> main.xxxx.js
+        ///       -> search for typeToField or data-field
         /// </summary>
         private static string[] propertyTypeToFieldName = new string[]
         {
