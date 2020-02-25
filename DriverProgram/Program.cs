@@ -10,7 +10,7 @@
     {
         static void Main(string[] args)
         {
-            /*WebsocketProtocol p = new WebsocketProtocol("Uniq Item", "https://www.pathofexile.com/trade/search/Betrayal/Abn2fL/live", "22d4a54aec6563d144c740d1666a1642");
+            /*WebsocketProtocol p = new WebsocketProtocol("Uniq Item", "https://www.pathofexile.com/trade/search/Metamorph/Abn2fL/live", "22d4a54aec6563d144c740d1666a1642");
             p.LOG += P_LOG;
             p.ItemAdded += P_ItemAdded;
             p.ConnectAsync();
@@ -20,9 +20,9 @@
 
             //string data = System.IO.File.ReadAllText(@"C:\Users\Zaafar Ahmed\Desktop\sampleOutput.txt");
             //var k = FormData.Parse(JArray.Parse(data));
-            var k = RestClient.GetPoeImage(@"https://web.poecdn.com/image/Art/2DItems/Jewels/PoisonDamageModifier.png?scale=1&w=1&h=1&v=70643080a1ee44e3b496bfde4ed08430");
+            //var k = RestClient.GetPoeImage(@"https://web.poecdn.com/image/Art/2DItems/Jewels/PoisonDamageModifier.png?scale=1&w=1&h=1&v=70643080a1ee44e3b496bfde4ed08430");
             //var k = RestClient.SearchForItems("Standard", data);
-            Console.WriteLine(k.Length);
+            //Console.WriteLine(k.Length);
             //Console.WriteLine("Closing...");
 
             /*string league = RestClient.Leagues["result"][0]["id"].ToObject<string>();
