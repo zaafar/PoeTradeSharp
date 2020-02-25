@@ -32,7 +32,7 @@ namespace PoeTradeSharp
         /// <summary>
         /// Poe Trade websocket protocol address
         /// </summary>
-        private const string PoeTradeWebsocketServer = "ws://www.pathofexile.com/api/trade/live/";
+        private const string PoeTradeWebsocketServer = "wss://www.pathofexile.com/api/trade/live/";
 
         /// <summary>
         /// WebSocket class to connect to poe.trade websocket server
@@ -58,7 +58,7 @@ namespace PoeTradeSharp
         ///    in the RAM. Also, display a warning when asking for this cookie. This is account
         ///    specific cookie.
         /// </param>
-        public WebsocketProtocol(string itemIdentifier, string searchUrl, string userCookie)
+        public WebsocketProtocol(string itemIdentifier, string searchUrl, string userCookie, bool showRawDebugRequestResponse=false)
         {
             this.ItemIdentifier = itemIdentifier;
             var tmp = searchUrl.Split(new char[] { '/' });
@@ -75,7 +75,14 @@ namespace PoeTradeSharp
 
             var url = $"{PoeTradeWebsocketServer}{League}/{ItemPattern}";
             this.webSocket = new WebSocket(url);
+            this.webSocket.Compression = CompressionMethod.Deflate;
+            if (showRawDebugRequestResponse)
+            {
+                this.webSocket.Log.Level = LogLevel.Debug;
+            }
+
             this.webSocket.SetCookie(new WebSocketSharp.Net.Cookie("POESESSID", userCookie));
+            this.webSocket.Origin = "https://www.pathofexile.com";
             this.webSocket.OnOpen += this.OnOpen;
             this.webSocket.OnError += this.OnError;
             this.webSocket.OnMessage += this.OnMessage;
